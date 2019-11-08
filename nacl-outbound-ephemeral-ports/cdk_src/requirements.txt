@@ -1,0 +1,2 @@
+-e .
+aws-cdk.aws_ec2
