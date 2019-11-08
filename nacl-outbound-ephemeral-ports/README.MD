@@ -9,7 +9,7 @@ Let us try to understand that with a simple scenario. When you want to visit a w
 The client that initiates the request chooses the ephemeral port range on which it wants to receive the payload it requested for. The range varies depending on the client's operating system. So, for a web server to work properly, we need to configure appropriate ephemerals ports on the web server.
 
 ### Lab Setup
-  In this repo, I have included a cloudformation template for a working web server. Go ahead and attach the public subnets to the custom subnet `web broken nacl`. Figure out what it is not working and why the `default ncal` is working.
+  In this repo, I have included a cloudformation template for a working web server. Go ahead and attach the public subnets to the custom subnet `web broken nacl`. Figure out what it is not working when attached to `web broken nacl` and why it works when attached to the `default nacl`. _Happy Learning_.
 
 ### Contact Us
 
