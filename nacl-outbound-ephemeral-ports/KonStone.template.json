@@ -266,7 +266,7 @@
         "aws:cdk:path": "KonStone/web_sec_grp/Resource"
       }
     },
-    "webworkingnacl574176FA": {
+    "webbrokennacl864C3DF6": {
       "Type": "AWS::EC2::NetworkAcl",
       "Properties": {
         "VpcId": {
@@ -274,14 +274,14 @@
         }
       },
       "Metadata": {
-        "aws:cdk:path": "KonStone/web_working_nacl/Resource"
+        "aws:cdk:path": "KonStone/web_broken_nacl/Resource"
       }
     },
-    "webworkingnaclworkingnaclinrule120AA8EE186": {
+    "webbrokennaclbrokennaclinrule1200D09EDD3": {
       "Type": "AWS::EC2::NetworkAclEntry",
       "Properties": {
         "NetworkAclId": {
-          "Ref": "webworkingnacl574176FA"
+          "Ref": "webbrokennacl864C3DF6"
         },
         "Protocol": 6,
         "RuleAction": "allow",
@@ -294,14 +294,14 @@
         }
       },
       "Metadata": {
-        "aws:cdk:path": "KonStone/web_working_nacl/working_nacl_in_rule_120/Resource"
+        "aws:cdk:path": "KonStone/web_broken_nacl/broken_nacl_in_rule_120/Resource"
       }
     },
-    "webworkingnaclworkingnacloutrule12047C2FC2E": {
+    "webbrokennaclbrokennacloutrule12075A55E72": {
       "Type": "AWS::EC2::NetworkAclEntry",
       "Properties": {
         "NetworkAclId": {
-          "Ref": "webworkingnacl574176FA"
+          "Ref": "webbrokennacl864C3DF6"
         },
         "Protocol": 6,
         "RuleAction": "allow",
@@ -314,7 +314,7 @@
         }
       },
       "Metadata": {
-        "aws:cdk:path": "KonStone/web_working_nacl/working_nacl_out_rule_120/Resource"
+        "aws:cdk:path": "KonStone/web_broken_nacl/broken_nacl_out_rule_120/Resource"
       }
     },
     "webinstance": {

@@ -35,27 +35,27 @@ class TtkStack(core.Stack):
             "Allow internet access from the world."
         )
 
-        working_nacl = ec2.NetworkAcl(self,
-            "web_working_nacl",
+        broken_nacl = ec2.NetworkAcl(self,
+            "web_broken_nacl",
             vpc = vpc
         )
 
         # Enable below section to break web server
         """
-        working_nacl.associate_with_subnet("web_working_nacl",
+        broken_nacl.associate_with_subnet("web_broken_nacl",
             subnets = [vpc.public_subnets[0]]
             # subnet_type = ec2.SubnetType.PUBLIC
         )
         """
 
-        working_nacl.add_entry("working_nacl_in_rule_120",
+        broken_nacl.add_entry("broken_nacl_in_rule_120",
             cidr = ec2.AclCidr.any_ipv4(),
             rule_number = 120,
             traffic = ec2.AclTraffic.tcp_port(80),
             direction = ec2.TrafficDirection.INGRESS,
             rule_action = ec2.Action.ALLOW
         )
-        working_nacl.add_entry("working_nacl_out_rule_120",
+        broken_nacl.add_entry("broken_nacl_out_rule_120",
             cidr = ec2.AclCidr.any_ipv4(),
             rule_number = 120,
             # traffic = ec2.AclTraffic.all_traffic(),
