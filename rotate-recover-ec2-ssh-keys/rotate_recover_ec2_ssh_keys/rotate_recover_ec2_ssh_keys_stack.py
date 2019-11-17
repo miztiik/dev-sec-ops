@@ -73,11 +73,6 @@ class RotateRecoverEc2SshKeysStack(core.Stack):
             instance_type = "t2.micro",
             monitoring = False,
             # key_name = ssh_key_name,
-            # tags = [{"key": "Name","value": "KonStone-Web-instance"}],
-            block_device_mappings=[{
-                "ebs" : { "volumeSize" : 10 },
-                "deviceName" : "/dev/xvda",
-                }],
             network_interfaces = [{
                 "deviceIndex": "0",
                 "associatePublicIpAddress": True,

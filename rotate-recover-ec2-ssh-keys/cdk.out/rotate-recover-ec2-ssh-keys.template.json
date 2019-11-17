@@ -327,14 +327,6 @@
     "webinstance01": {
       "Type": "AWS::EC2::Instance",
       "Properties": {
-        "BlockDeviceMappings": [
-          {
-            "DeviceName": "/dev/xvda",
-            "Ebs": {
-              "VolumeSize": 10
-            }
-          }
-        ],
         "IamInstanceProfile": {
           "Ref": "instProfile01Id"
         },

@@ -316,14 +316,6 @@
             "attributes": {
               "aws:cdk:cloudformation:type": "AWS::EC2::Instance",
               "aws:cdk:cloudformation:props": {
-                "blockDeviceMappings": [
-                  {
-                    "ebs": {
-                      "volumeSize": 10
-                    },
-                    "deviceName": "/dev/xvda"
-                  }
-                ],
                 "iamInstanceProfile": "${Token[TOKEN.70]}",
                 "imageId": "ami-07bd28c96286169fa",
                 "instanceType": "t2.micro",
