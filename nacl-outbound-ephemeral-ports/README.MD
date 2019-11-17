@@ -1,8 +1,10 @@
 # AWS Security - Why add Ephemeral ports to NACL?
 
-Recently, I was asked why do we need to add ephemeral ports on NACL?. 
+Recently, I was asked why do we need to add ephemeral ports on NACL?.
 
 ![why-add-ephemeral-ports-on-nacl](images/why-add-ephemeral-ports-on-nacl.png)
+
+Follow this article in **[Youtube](https://youtu.be/MhFlNOdMfRo)**
 
 Let us try to understand that with a simple scenario. When you want to visit a webpage you use a browser type in the url, in the background, Your browser(client) sends a request to the website(web-server). 
 
