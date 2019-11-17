@@ -1,58 +1,20 @@
+# AWS Security - Recover or Rotate SSH Keys using SSM
 
-# Welcome to your CDK Python project!
+We will use [AWS SSM](https://www.youtube.com/watch?v=5JnOVMb4lTs) to recover a server for which there is no ssh key is attached or A server for which the SSH key is lost <sup>[Ref](#References)</sup>. We can use the similar technique to rotate the ssh keys for security reasons.
 
-This is a blank project for Python development with CDK.
+## Lab Setup
 
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
+  . _Happy Learning_.
 
-This project is set up like a standard Python project.  The initialization
-process also creates a virtualenv within this project, stored under the .env
-directory.  To create the virtualenv it assumes that there is a `python3`
-(or `python` for Windows) executable in your path with access to the `venv`
-package. If for any reason the automatic creation of the virtualenv fails,
-you can create the virtualenv manually.
+### Contact Us
 
-To manually create a virtualenv on MacOS and Linux:
+You can reach out to us to get more details through [here](https://youtube.com/c/valaxytechnologies/about).
 
-```
-$ python3 -m venv .env
-```
+#### References
 
-After the init process completes and the virtualenv is created, you can use the following
-step to activate your virtualenv.
+1. [Recover Lost Key Pair of AWS EC2 using Userdata](https://www.youtube.com/watch?v=Bqt538HRsws)
+1. [Recover Key Pair of AWS EC2](https://www.youtube.com/watch?v=5btWXn4yWzQ)
 
-```
-$ source .env/bin/activate
-```
+### Metadata
 
-If you are a Windows platform, you would activate the virtualenv like this:
-
-```
-% .env\Scripts\activate.bat
-```
-
-Once the virtualenv is activated, you can install the required dependencies.
-
-```
-$ pip install -r requirements.txt
-```
-
-At this point you can now synthesize the CloudFormation template for this code.
-
-```
-$ cdk synth
-```
-
-To add additional dependencies, for example other CDK libraries, just add
-them to your `setup.py` file and rerun the `pip install -r requirements.txt`
-command.
-
-# Useful commands
-
- * `cdk ls`          list all stacks in the app
- * `cdk synth`       emits the synthesized CloudFormation template
- * `cdk deploy`      deploy this stack to your default AWS account/region
- * `cdk diff`        compare deployed stack with current state
- * `cdk docs`        open CDK documentation
-
-Enjoy!
+**Level**: 100
