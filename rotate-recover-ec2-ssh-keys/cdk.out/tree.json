@@ -1,0 +1,359 @@
+{
+  "version": "tree-0.1",
+  "tree": {
+    "id": "App",
+    "path": "",
+    "children": {
+      "Tree": {
+        "id": "Tree",
+        "path": "Tree"
+      },
+      "rotate-recover-ec2-ssh-keys": {
+        "id": "rotate-recover-ec2-ssh-keys",
+        "path": "rotate-recover-ec2-ssh-keys",
+        "children": {
+          "MyVpc": {
+            "id": "MyVpc",
+            "path": "rotate-recover-ec2-ssh-keys/MyVpc",
+            "children": {
+              "Resource": {
+                "id": "Resource",
+                "path": "rotate-recover-ec2-ssh-keys/MyVpc/Resource",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::EC2::VPC",
+                  "aws:cdk:cloudformation:props": {
+                    "cidrBlock": "10.13.0.0/21",
+                    "enableDnsHostnames": true,
+                    "enableDnsSupport": true,
+                    "instanceTenancy": "default",
+                    "tags": [
+                      {
+                        "key": "Name",
+                        "value": "rotate-recover-ec2-ssh-keys/MyVpc"
+                      },
+                      {
+                        "key": "Owner",
+                        "value": "KonStone"
+                      }
+                    ]
+                  }
+                }
+              },
+              "pubSubnetSubnet1": {
+                "id": "pubSubnetSubnet1",
+                "path": "rotate-recover-ec2-ssh-keys/MyVpc/pubSubnetSubnet1",
+                "children": {
+                  "Subnet": {
+                    "id": "Subnet",
+                    "path": "rotate-recover-ec2-ssh-keys/MyVpc/pubSubnetSubnet1/Subnet",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::EC2::Subnet",
+                      "aws:cdk:cloudformation:props": {
+                        "cidrBlock": "10.13.0.0/24",
+                        "vpcId": "${Token[TOKEN.21]}",
+                        "availabilityZone": "${Token[TOKEN.18]}",
+                        "mapPublicIpOnLaunch": true,
+                        "tags": [
+                          {
+                            "key": "Name",
+                            "value": "rotate-recover-ec2-ssh-keys/MyVpc/pubSubnetSubnet1"
+                          },
+                          {
+                            "key": "Owner",
+                            "value": "KonStone"
+                          },
+                          {
+                            "key": "aws-cdk:subnet-name",
+                            "value": "pubSubnet"
+                          },
+                          {
+                            "key": "aws-cdk:subnet-type",
+                            "value": "Public"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "Acl": {
+                    "id": "Acl",
+                    "path": "rotate-recover-ec2-ssh-keys/MyVpc/pubSubnetSubnet1/Acl"
+                  },
+                  "RouteTable": {
+                    "id": "RouteTable",
+                    "path": "rotate-recover-ec2-ssh-keys/MyVpc/pubSubnetSubnet1/RouteTable",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::EC2::RouteTable",
+                      "aws:cdk:cloudformation:props": {
+                        "vpcId": "${Token[TOKEN.21]}",
+                        "tags": [
+                          {
+                            "key": "Name",
+                            "value": "rotate-recover-ec2-ssh-keys/MyVpc/pubSubnetSubnet1"
+                          },
+                          {
+                            "key": "Owner",
+                            "value": "KonStone"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "RouteTableAssociation": {
+                    "id": "RouteTableAssociation",
+                    "path": "rotate-recover-ec2-ssh-keys/MyVpc/pubSubnetSubnet1/RouteTableAssociation",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::EC2::SubnetRouteTableAssociation",
+                      "aws:cdk:cloudformation:props": {
+                        "routeTableId": "${Token[TOKEN.32]}",
+                        "subnetId": "${Token[TOKEN.28]}"
+                      }
+                    }
+                  },
+                  "DefaultRoute": {
+                    "id": "DefaultRoute",
+                    "path": "rotate-recover-ec2-ssh-keys/MyVpc/pubSubnetSubnet1/DefaultRoute",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::EC2::Route",
+                      "aws:cdk:cloudformation:props": {
+                        "routeTableId": "${Token[TOKEN.32]}",
+                        "destinationCidrBlock": "0.0.0.0/0",
+                        "gatewayId": "${Token[TOKEN.47]}"
+                      }
+                    }
+                  }
+                }
+              },
+              "pubSubnetSubnet2": {
+                "id": "pubSubnetSubnet2",
+                "path": "rotate-recover-ec2-ssh-keys/MyVpc/pubSubnetSubnet2",
+                "children": {
+                  "Subnet": {
+                    "id": "Subnet",
+                    "path": "rotate-recover-ec2-ssh-keys/MyVpc/pubSubnetSubnet2/Subnet",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::EC2::Subnet",
+                      "aws:cdk:cloudformation:props": {
+                        "cidrBlock": "10.13.1.0/24",
+                        "vpcId": "${Token[TOKEN.21]}",
+                        "availabilityZone": "${Token[TOKEN.20]}",
+                        "mapPublicIpOnLaunch": true,
+                        "tags": [
+                          {
+                            "key": "Name",
+                            "value": "rotate-recover-ec2-ssh-keys/MyVpc/pubSubnetSubnet2"
+                          },
+                          {
+                            "key": "Owner",
+                            "value": "KonStone"
+                          },
+                          {
+                            "key": "aws-cdk:subnet-name",
+                            "value": "pubSubnet"
+                          },
+                          {
+                            "key": "aws-cdk:subnet-type",
+                            "value": "Public"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "Acl": {
+                    "id": "Acl",
+                    "path": "rotate-recover-ec2-ssh-keys/MyVpc/pubSubnetSubnet2/Acl"
+                  },
+                  "RouteTable": {
+                    "id": "RouteTable",
+                    "path": "rotate-recover-ec2-ssh-keys/MyVpc/pubSubnetSubnet2/RouteTable",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::EC2::RouteTable",
+                      "aws:cdk:cloudformation:props": {
+                        "vpcId": "${Token[TOKEN.21]}",
+                        "tags": [
+                          {
+                            "key": "Name",
+                            "value": "rotate-recover-ec2-ssh-keys/MyVpc/pubSubnetSubnet2"
+                          },
+                          {
+                            "key": "Owner",
+                            "value": "KonStone"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "RouteTableAssociation": {
+                    "id": "RouteTableAssociation",
+                    "path": "rotate-recover-ec2-ssh-keys/MyVpc/pubSubnetSubnet2/RouteTableAssociation",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::EC2::SubnetRouteTableAssociation",
+                      "aws:cdk:cloudformation:props": {
+                        "routeTableId": "${Token[TOKEN.44]}",
+                        "subnetId": "${Token[TOKEN.40]}"
+                      }
+                    }
+                  },
+                  "DefaultRoute": {
+                    "id": "DefaultRoute",
+                    "path": "rotate-recover-ec2-ssh-keys/MyVpc/pubSubnetSubnet2/DefaultRoute",
+                    "attributes": {
+                      "aws:cdk:cloudformation:type": "AWS::EC2::Route",
+                      "aws:cdk:cloudformation:props": {
+                        "routeTableId": "${Token[TOKEN.44]}",
+                        "destinationCidrBlock": "0.0.0.0/0",
+                        "gatewayId": "${Token[TOKEN.47]}"
+                      }
+                    }
+                  }
+                }
+              },
+              "IGW": {
+                "id": "IGW",
+                "path": "rotate-recover-ec2-ssh-keys/MyVpc/IGW",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::EC2::InternetGateway",
+                  "aws:cdk:cloudformation:props": {
+                    "tags": [
+                      {
+                        "key": "Name",
+                        "value": "rotate-recover-ec2-ssh-keys/MyVpc"
+                      },
+                      {
+                        "key": "Owner",
+                        "value": "KonStone"
+                      }
+                    ]
+                  }
+                }
+              },
+              "VPCGW": {
+                "id": "VPCGW",
+                "path": "rotate-recover-ec2-ssh-keys/MyVpc/VPCGW",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::EC2::VPCGatewayAttachment",
+                  "aws:cdk:cloudformation:props": {
+                    "vpcId": "${Token[TOKEN.21]}",
+                    "internetGatewayId": "${Token[TOKEN.47]}"
+                  }
+                }
+              }
+            }
+          },
+          "SsmParameterValue:--aws--service--ami-amazon-linux-latest--amzn2-ami-hvm-x86_64-gp2:C96584B6-F00A-464E-AD19-53AFF4B05118.Parameter": {
+            "id": "SsmParameterValue:--aws--service--ami-amazon-linux-latest--amzn2-ami-hvm-x86_64-gp2:C96584B6-F00A-464E-AD19-53AFF4B05118.Parameter",
+            "path": "rotate-recover-ec2-ssh-keys/SsmParameterValue:--aws--service--ami-amazon-linux-latest--amzn2-ami-hvm-x86_64-gp2:C96584B6-F00A-464E-AD19-53AFF4B05118.Parameter"
+          },
+          "SsmParameterValue:--aws--service--ami-amazon-linux-latest--amzn2-ami-hvm-x86_64-gp2:C96584B6-F00A-464E-AD19-53AFF4B05118": {
+            "id": "SsmParameterValue:--aws--service--ami-amazon-linux-latest--amzn2-ami-hvm-x86_64-gp2:C96584B6-F00A-464E-AD19-53AFF4B05118",
+            "path": "rotate-recover-ec2-ssh-keys/SsmParameterValue:--aws--service--ami-amazon-linux-latest--amzn2-ami-hvm-x86_64-gp2:C96584B6-F00A-464E-AD19-53AFF4B05118"
+          },
+          "web_sec_grp": {
+            "id": "web_sec_grp",
+            "path": "rotate-recover-ec2-ssh-keys/web_sec_grp",
+            "children": {
+              "Resource": {
+                "id": "Resource",
+                "path": "rotate-recover-ec2-ssh-keys/web_sec_grp/Resource",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::EC2::SecurityGroup",
+                  "aws:cdk:cloudformation:props": {
+                    "groupDescription": "Allow internet access from the world",
+                    "groupName": "${Token[TOKEN.54]}",
+                    "securityGroupEgress": "<unresolved-lazy>",
+                    "securityGroupIngress": "<unresolved-lazy>",
+                    "vpcId": "${Token[TOKEN.21]}"
+                  }
+                }
+              }
+            }
+          },
+          "ec2ssmroleid": {
+            "id": "ec2ssmroleid",
+            "path": "rotate-recover-ec2-ssh-keys/ec2ssmroleid",
+            "children": {
+              "Resource": {
+                "id": "Resource",
+                "path": "rotate-recover-ec2-ssh-keys/ec2ssmroleid/Resource",
+                "attributes": {
+                  "aws:cdk:cloudformation:type": "AWS::IAM::Role",
+                  "aws:cdk:cloudformation:props": {
+                    "assumeRolePolicyDocument": {
+                      "Statement": [
+                        {
+                          "Action": "sts:AssumeRole",
+                          "Effect": "Allow",
+                          "Principal": {
+                            "Service": "${Token[ec2.amazonaws.com.59]}"
+                          }
+                        }
+                      ],
+                      "Version": "2012-10-17"
+                    },
+                    "managedPolicyArns": [
+                      "#{Token[TOKEN.60]}"
+                    ],
+                    "roleName": "ssmRoleForEC2Name"
+                  }
+                }
+              }
+            }
+          },
+          "instProfile01Id": {
+            "id": "instProfile01Id",
+            "path": "rotate-recover-ec2-ssh-keys/instProfile01Id",
+            "attributes": {
+              "aws:cdk:cloudformation:type": "AWS::IAM::InstanceProfile",
+              "aws:cdk:cloudformation:props": {
+                "roles": [
+                  "${Token[TOKEN.66]}"
+                ]
+              }
+            }
+          },
+          "webinstance01": {
+            "id": "webinstance01",
+            "path": "rotate-recover-ec2-ssh-keys/webinstance01",
+            "attributes": {
+              "aws:cdk:cloudformation:type": "AWS::EC2::Instance",
+              "aws:cdk:cloudformation:props": {
+                "blockDeviceMappings": [
+                  {
+                    "ebs": {
+                      "volumeSize": 10
+                    },
+                    "deviceName": "/dev/xvda"
+                  }
+                ],
+                "iamInstanceProfile": "${Token[TOKEN.70]}",
+                "imageId": "ami-07bd28c96286169fa",
+                "instanceType": "t2.micro",
+                "monitoring": false,
+                "networkInterfaces": [
+                  {
+                    "deviceIndex": "0",
+                    "associatePublicIpAddress": true,
+                    "subnetId": "${Token[TOKEN.28]}",
+                    "groupSet": [
+                      "${Token[TOKEN.56]}"
+                    ]
+                  }
+                ],
+                "tags": [
+                  {
+                    "key": "Name",
+                    "value": "KonStone-Stack"
+                  }
+                ],
+                "userData": "${Token[TOKEN.71]}"
+              }
+            }
+          },
+          "web_inst_01": {
+            "id": "web_inst_01",
+            "path": "rotate-recover-ec2-ssh-keys/web_inst_01"
+          }
+        }
+      }
+    }
+  }
+}

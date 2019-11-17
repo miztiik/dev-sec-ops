@@ -1,0 +1,393 @@
+{
+  "Resources": {
+    "MyVpcF9F0CA6F": {
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+        "CidrBlock": "10.13.0.0/21",
+        "EnableDnsHostnames": true,
+        "EnableDnsSupport": true,
+        "InstanceTenancy": "default",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "rotate-recover-ec2-ssh-keys/MyVpc"
+          },
+          {
+            "Key": "Owner",
+            "Value": "KonStone"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "rotate-recover-ec2-ssh-keys/MyVpc/Resource"
+      }
+    },
+    "MyVpcpubSubnetSubnet1SubnetD4A9FCBD": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "CidrBlock": "10.13.0.0/24",
+        "VpcId": {
+          "Ref": "MyVpcF9F0CA6F"
+        },
+        "AvailabilityZone": {
+          "Fn::Select": [
+            0,
+            {
+              "Fn::GetAZs": ""
+            }
+          ]
+        },
+        "MapPublicIpOnLaunch": true,
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "rotate-recover-ec2-ssh-keys/MyVpc/pubSubnetSubnet1"
+          },
+          {
+            "Key": "Owner",
+            "Value": "KonStone"
+          },
+          {
+            "Key": "aws-cdk:subnet-name",
+            "Value": "pubSubnet"
+          },
+          {
+            "Key": "aws-cdk:subnet-type",
+            "Value": "Public"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "rotate-recover-ec2-ssh-keys/MyVpc/pubSubnetSubnet1/Subnet"
+      }
+    },
+    "MyVpcpubSubnetSubnet1RouteTable0125BBEF": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "MyVpcF9F0CA6F"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "rotate-recover-ec2-ssh-keys/MyVpc/pubSubnetSubnet1"
+          },
+          {
+            "Key": "Owner",
+            "Value": "KonStone"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "rotate-recover-ec2-ssh-keys/MyVpc/pubSubnetSubnet1/RouteTable"
+      }
+    },
+    "MyVpcpubSubnetSubnet1RouteTableAssociation01A3DB03": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "MyVpcpubSubnetSubnet1RouteTable0125BBEF"
+        },
+        "SubnetId": {
+          "Ref": "MyVpcpubSubnetSubnet1SubnetD4A9FCBD"
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "rotate-recover-ec2-ssh-keys/MyVpc/pubSubnetSubnet1/RouteTableAssociation"
+      }
+    },
+    "MyVpcpubSubnetSubnet1DefaultRoute40937DC3": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "MyVpcpubSubnetSubnet1RouteTable0125BBEF"
+        },
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": {
+          "Ref": "MyVpcIGW5C4A4F63"
+        }
+      },
+      "DependsOn": [
+        "MyVpcVPCGW488ACE0D"
+      ],
+      "Metadata": {
+        "aws:cdk:path": "rotate-recover-ec2-ssh-keys/MyVpc/pubSubnetSubnet1/DefaultRoute"
+      }
+    },
+    "MyVpcpubSubnetSubnet2SubnetF7FBA7DE": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "CidrBlock": "10.13.1.0/24",
+        "VpcId": {
+          "Ref": "MyVpcF9F0CA6F"
+        },
+        "AvailabilityZone": {
+          "Fn::Select": [
+            1,
+            {
+              "Fn::GetAZs": ""
+            }
+          ]
+        },
+        "MapPublicIpOnLaunch": true,
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "rotate-recover-ec2-ssh-keys/MyVpc/pubSubnetSubnet2"
+          },
+          {
+            "Key": "Owner",
+            "Value": "KonStone"
+          },
+          {
+            "Key": "aws-cdk:subnet-name",
+            "Value": "pubSubnet"
+          },
+          {
+            "Key": "aws-cdk:subnet-type",
+            "Value": "Public"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "rotate-recover-ec2-ssh-keys/MyVpc/pubSubnetSubnet2/Subnet"
+      }
+    },
+    "MyVpcpubSubnetSubnet2RouteTableB9B9A9FF": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "MyVpcF9F0CA6F"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "rotate-recover-ec2-ssh-keys/MyVpc/pubSubnetSubnet2"
+          },
+          {
+            "Key": "Owner",
+            "Value": "KonStone"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "rotate-recover-ec2-ssh-keys/MyVpc/pubSubnetSubnet2/RouteTable"
+      }
+    },
+    "MyVpcpubSubnetSubnet2RouteTableAssociationAA39293B": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "MyVpcpubSubnetSubnet2RouteTableB9B9A9FF"
+        },
+        "SubnetId": {
+          "Ref": "MyVpcpubSubnetSubnet2SubnetF7FBA7DE"
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "rotate-recover-ec2-ssh-keys/MyVpc/pubSubnetSubnet2/RouteTableAssociation"
+      }
+    },
+    "MyVpcpubSubnetSubnet2DefaultRouteE761BA57": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "MyVpcpubSubnetSubnet2RouteTableB9B9A9FF"
+        },
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": {
+          "Ref": "MyVpcIGW5C4A4F63"
+        }
+      },
+      "DependsOn": [
+        "MyVpcVPCGW488ACE0D"
+      ],
+      "Metadata": {
+        "aws:cdk:path": "rotate-recover-ec2-ssh-keys/MyVpc/pubSubnetSubnet2/DefaultRoute"
+      }
+    },
+    "MyVpcIGW5C4A4F63": {
+      "Type": "AWS::EC2::InternetGateway",
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "rotate-recover-ec2-ssh-keys/MyVpc"
+          },
+          {
+            "Key": "Owner",
+            "Value": "KonStone"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "rotate-recover-ec2-ssh-keys/MyVpc/IGW"
+      }
+    },
+    "MyVpcVPCGW488ACE0D": {
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+      "Properties": {
+        "VpcId": {
+          "Ref": "MyVpcF9F0CA6F"
+        },
+        "InternetGatewayId": {
+          "Ref": "MyVpcIGW5C4A4F63"
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "rotate-recover-ec2-ssh-keys/MyVpc/VPCGW"
+      }
+    },
+    "websecgrp8CE62532": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Allow internet access from the world",
+        "SecurityGroupEgress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1"
+          }
+        ],
+        "SecurityGroupIngress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow internet access from the world.",
+            "FromPort": 22,
+            "IpProtocol": "tcp",
+            "ToPort": 22
+          }
+        ],
+        "VpcId": {
+          "Ref": "MyVpcF9F0CA6F"
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "rotate-recover-ec2-ssh-keys/web_sec_grp/Resource"
+      }
+    },
+    "ec2ssmroleid07802BEF": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": {
+                  "Fn::Join": [
+                    "",
+                    [
+                      "ec2.",
+                      {
+                        "Ref": "AWS::URLSuffix"
+                      }
+                    ]
+                  ]
+                }
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":iam::aws:policy/AmazonSSMManagedInstanceCore"
+              ]
+            ]
+          }
+        ],
+        "RoleName": "ssmRoleForEC2Name"
+      },
+      "Metadata": {
+        "aws:cdk:path": "rotate-recover-ec2-ssh-keys/ec2ssmroleid/Resource"
+      }
+    },
+    "instProfile01Id": {
+      "Type": "AWS::IAM::InstanceProfile",
+      "Properties": {
+        "Roles": [
+          {
+            "Ref": "ec2ssmroleid07802BEF"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "rotate-recover-ec2-ssh-keys/instProfile01Id"
+      }
+    },
+    "webinstance01": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "BlockDeviceMappings": [
+          {
+            "DeviceName": "/dev/xvda",
+            "Ebs": {
+              "VolumeSize": 10
+            }
+          }
+        ],
+        "IamInstanceProfile": {
+          "Ref": "instProfile01Id"
+        },
+        "ImageId": "ami-07bd28c96286169fa",
+        "InstanceType": "t2.micro",
+        "Monitoring": false,
+        "NetworkInterfaces": [
+          {
+            "AssociatePublicIpAddress": true,
+            "DeviceIndex": "0",
+            "GroupSet": [
+              {
+                "Fn::GetAtt": [
+                  "websecgrp8CE62532",
+                  "GroupId"
+                ]
+              }
+            ],
+            "SubnetId": {
+              "Ref": "MyVpcpubSubnetSubnet1SubnetD4A9FCBD"
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "KonStone-Stack"
+          }
+        ],
+        "UserData": {
+          "Fn::Base64": "#!/bin/bash\n#!/bin/bash -xe\n\n# Lets log everything to console for being lazy (not recommended)\nexec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1\n\n#install httpd\nyum install httpd ec2-instance-connect -y\n\nmkdir -p /tmp/ssm \\\n    && yum install -y curl \\\n    && curl https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm -o /tmp/ssm/amazon-ssm-agent.rpm \\\n    && sudo yum install -y /tmp/ssm/amazon-ssm-agent.rpm \\\n    && sudo systemctl restart amazon-ssm-agent"
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "rotate-recover-ec2-ssh-keys/webinstance01"
+      }
+    }
+  },
+  "Parameters": {
+    "SsmParameterValueawsserviceamiamazonlinuxlatestamzn2amihvmx8664gp2C96584B6F00A464EAD1953AFF4B05118Parameter": {
+      "Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
+      "Default": "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
+    }
+  },
+  "Outputs": {
+    "webinst01": {
+      "Description": "Web Server Public IP",
+      "Value": {
+        "Fn::GetAtt": [
+          "webinstance01",
+          "PublicIp"
+        ]
+      }
+    }
+  }
+}
