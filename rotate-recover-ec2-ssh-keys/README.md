@@ -14,17 +14,24 @@
 
   If you have AWS CDK installed you can close this repository and deploy the stack with 
 
-      ```sh
-      git clone git@github.com:miztiik/dev-sec-ops.git
-      cd ./dev-sec-ops/rotate-recover-ec2-ssh-keys/
-      source .env/bin/activate
-      cdk deploy
-      ```
+  ```sh
+  git clone git@github.com:miztiik/dev-sec-ops.git
+  cd ./dev-sec-ops/rotate-recover-ec2-ssh-keys/
+  source .env/bin/activate
+  cdk deploy
+  ```
 
 ### Method 2: Using AWS CDK
 
   If you are using cloudformation, the templates are under `cdk.out` directory the naming is usually `DIR_NAME.template.json`.
-  _You can deploy them through GUI or console_
+  _You can deploy them through GUI or console_ 
+
+  ```sh
+  aws cloudformation deploy \
+        --template-file rotate-recover-ec2-ssh-keys.template.json \
+        --stack-name "MiztiikStack" \
+        --capabilities CAPABILITY_IAM
+  ```
 
 ### Contact Us
 
