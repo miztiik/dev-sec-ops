@@ -26,7 +26,7 @@ class RotateRecoverEc2SshKeysStack(core.Stack):
         # We are using the latest AMAZON LINUX AMI
         amzn_ami_id = ec2.AmazonLinuxImage(generation = ec2.AmazonLinuxGeneration.AMAZON_LINUX_2).get_image(self).image_id
         # https://access.redhat.com/articles/4297201
-        rh_ami_id = "ami-07bd28c96286169fa"
+        rh_ami_id = "ami-0c322300a1dd5dc79"
 
         high_perf_sg = ec2.SecurityGroup(self,
             "web_sec_grp",

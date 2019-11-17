@@ -330,7 +330,7 @@
         "IamInstanceProfile": {
           "Ref": "instProfile01Id"
         },
-        "ImageId": "ami-07bd28c96286169fa",
+        "ImageId": "ami-0c322300a1dd5dc79",
         "InstanceType": "t2.micro",
         "Monitoring": false,
         "NetworkInterfaces": [
