@@ -23,8 +23,8 @@
 
 ### Method 2: Using AWS CDK
 
-  If you are using cloudformation, the templates are under `cdk.out` directory the naming is usually `DIR_NAME.template.json`.
-  _You can deploy them through GUI or console_ 
+  If you are using cloudformation, download the templates are under `cdk.out` directory. The stack name is usually `DIR_NAME.template.json`. You can deploy them through GUI or console.
+  _From the CLI,_
 
   ```sh
   aws cloudformation deploy \
