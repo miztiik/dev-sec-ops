@@ -4,7 +4,7 @@
 
   This method of recovering or rotating the keys depends on two key aspects of AWS SSM,
   
-  1. Your instance is running [SSM Agent](https://github.com/miztiik/AWS-Demos/tree/master/How-To/setup-ssm-hybrid-environment#install-ssm-client-on-on-prem-servers)
+  1. Your instance is running [SSM Agent](https://github.com/miztiik/AWS-Demos/tree/master/How-To/setup-ssm-hybrid-environment#install-ssm-client-on-on-prem-servers). _If the agent is not installed, it can be manually set up according to [documentation](https://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-manual-agent-install.html)_.
   1. Your instance SSM agents connects to SSM Service - aka the instance has an instance profile attached with necessary permissions
   
   ![Recover or Rotate SSH Keys using SSM](images/setup-ssh-key-recovery-using-userdata-valaxy-00.png)
@@ -17,7 +17,7 @@
 
 ### Method 1: Using AWS CDK
 
-  If you have AWS CDK installed you can close this repository and deploy the stack with 
+  If you have AWS CDK installed you can close this repository and deploy the stack with,
 
   ```sh
   git clone git@github.com:miztiik/dev-sec-ops.git
@@ -36,6 +36,17 @@
         --template-file rotate-recover-ec2-ssh-keys.template.json \
         --stack-name "MiztiikStack" \
         --capabilities CAPABILITY_IAM
+  ```
+
+#### Steps to create new keys in terminal
+
+  ```sh
+  # To generate public key
+  ssh-keygen -t rsa -N “” -q -f YOUR-KEY-NAME
+
+  # To add public key in run command
+  #!/bin/bash
+  echo -e "YOUR-PUBLIC-KEY-BETWEEN-QUOTES" >> /home/ec2-user/.ssh/authorized_keys
   ```
 
 ### Contact Us
