@@ -9,7 +9,7 @@
   
   ![Recover or Rotate SSH Keys using SSM](images/setup-ssh-key-recovery-using-userdata-valaxy-00.png)
 
-  Follow this article in **[Youtube](https://www.youtube.com/c/ValaxyTechnologies)**
+  Follow this article in **[Youtube](https://youtu.be/a4gOXBrVe6w)**
 
 ## Lab Setup
 
