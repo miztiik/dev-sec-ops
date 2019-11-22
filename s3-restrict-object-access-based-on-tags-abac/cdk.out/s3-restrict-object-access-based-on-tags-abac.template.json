@@ -145,19 +145,11 @@
                 "Fn::Join": [
                   "",
                   [
-                    "arn:",
-                    {
-                      "Ref": "AWS::Partition"
-                    },
-                    ":iam:",
-                    {
-                      "Ref": "AWS::Region"
-                    },
-                    ":",
+                    "arn:aws:iam:",
                     {
                       "Ref": "AWS::AccountId"
                     },
-                    ":role:unicornTeamRoleProject*"
+                    ":role/unicornTeamRoleProject*"
                   ]
                 ]
               },

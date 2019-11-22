@@ -115,18 +115,11 @@ class S3RestrictObjectAccessBasedOnTagsAbacStack(core.Stack):
         core.Tag.add(unicornTeamProjectBlueRole, key="teamName",value="teamUnicorn")
         core.Tag.add(unicornTeamProjectBlueRole, key="projectName",value="projectBlue")
 
-        rolesArn=core.Stack.format_arn(
-            self,
-            service="iam",
-            resource="role",
-            sep=":",
-            resource_name="unicornTeamRoleProject*"
-        )
         # Allow Group to Assume Role
         grpStmt1=iam.PolicyStatement(
                 effect=iam.Effect.ALLOW,
                 # resources=[unicornTeamProjectRedRole.role_arn],
-                resources=[rolesArn],
+                resources=[f"arn:aws:iam:{accountId}:role/unicornTeamRoleProject*"],
                 actions=["sts:AssumeRole"],
                 conditions={ "StringEquals": { "iam:ResourceTag/teamName": "${aws:PrincipalTag/teamName}" } }
             )
