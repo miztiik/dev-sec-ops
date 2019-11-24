@@ -115,13 +115,24 @@ class S3RestrictObjectAccessBasedOnTagsAbacStack(core.Stack):
         core.Tag.add(unicornTeamProjectBlueRole, key="teamName",value="teamUnicorn")
         core.Tag.add(unicornTeamProjectBlueRole, key="projectName",value="projectBlue")
 
+        unicornTeamProjectAdminRole = iam.Role(
+            self,
+            'unicornTeamProjectAdminRoleId',
+            assumed_by=iam.AccountPrincipal(f"{accountId}"),
+            role_name="unicornTeamProjectAdminRole"
+        )
+        core.Tag.add(unicornTeamProjectAdminRole, key="teamName",value="teamUnicorn")
+        core.Tag.add(unicornTeamProjectAdminRole, key="projectAdmin",value="yes")
+
         # Allow Group to Assume Role
         grpStmt1=iam.PolicyStatement(
                 effect=iam.Effect.ALLOW,
-                # resources=[unicornTeamProjectRedRole.role_arn],
-                resources=[f"arn:aws:iam:{accountId}:role/unicornTeamRoleProject*"],
+                resources=[f"arn:aws:iam::{accountId}:role/unicornTeamProject*"],
                 actions=["sts:AssumeRole"],
-                conditions={ "StringEquals": { "iam:ResourceTag/teamName": "${aws:PrincipalTag/teamName}" } }
+                conditions={ "StringEquals": { "iam:ResourceTag/teamName": "${aws:PrincipalTag/teamName}",
+                                               "iam:ResourceTag/projectName": "${aws:PrincipalTag/projectName}"
+                                            }
+                        }
             )
         grpStmt1.sid="AllowGroupMembersToAssumeRoleMatchingTeamName"
         unicornGrp.add_to_policy( grpStmt1 )
@@ -145,23 +156,22 @@ class S3RestrictObjectAccessBasedOnTagsAbacStack(core.Stack):
 
         roleStmt3=iam.PolicyStatement(
                 effect=iam.Effect.ALLOW,
-                resources=[bkt01.arn_for_objects("*")],
-                actions=["s3:Get*"],
-                conditions={ "StringEquals" : { 
-                    "s3:ExistingObjectTag/teamName": "${aws:PrincipalTag/teamName}",
-                    "s3:ExistingObjectTag/projectName": "${aws:PrincipalTag/projectName}",
-                    }
-                }
+                resources=[bkt01.bucket_arn, bkt01.arn_for_objects("*")],
+                actions=["s3:Get*", "s3:Put*"],
+                conditions={ "StringEquals": { "s3:ExistingObjectTag/teamName" : "${aws:PrincipalTag/teamName}",
+                                               "s3:ExistingObjectTag/projectName" : "${aws:PrincipalTag/projectName}" 
+                                            }
+                        }
             )
         roleStmt3.sid="ReadOnlyAccessToTeams"
 
         roleStmt4=iam.PolicyStatement(
                 effect=iam.Effect.ALLOW,
-                resources=[bkt01.arn_for_objects("*")],
-                actions=["s3:*"],
-                conditions={ "StringEquals" : { 
-                    "s3:ExistingObjectTag/teamName": "${aws:PrincipalTag/teamName}",
-                    "${aws:PrincipalTag/projectAdmin}": "yes"
+                resources=[bkt01.bucket_arn, bkt01.arn_for_objects("*")],
+                actions=["s3:Put*"],
+                conditions={ 
+                    "StringEquals" : { 
+                        "${aws:PrincipalTag/projectAdmin}": [ "yes" ]
                     }
                 }
             )
@@ -177,3 +187,9 @@ class S3RestrictObjectAccessBasedOnTagsAbacStack(core.Stack):
         unicornTeamProjectBlueRole.add_to_policy( roleStmt2 )
         unicornTeamProjectBlueRole.add_to_policy( roleStmt3 )
         unicornTeamProjectBlueRole.add_to_policy( roleStmt4 )
+
+        # Add same permissions to projectAdminRole
+        unicornTeamProjectAdminRole.add_to_policy( roleStmt1 )
+        unicornTeamProjectAdminRole.add_to_policy( roleStmt2 )
+        unicornTeamProjectAdminRole.add_to_policy( roleStmt3 )
+        unicornTeamProjectAdminRole.add_to_policy( roleStmt4 )
