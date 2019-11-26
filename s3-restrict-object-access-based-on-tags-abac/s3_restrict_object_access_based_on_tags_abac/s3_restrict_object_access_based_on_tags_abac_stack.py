@@ -156,8 +156,8 @@ class S3RestrictObjectAccessBasedOnTagsAbacStack(core.Stack):
 
         roleStmt3=iam.PolicyStatement(
                 effect=iam.Effect.ALLOW,
-                resources=[bkt01.bucket_arn, bkt01.arn_for_objects("*")],
-                actions=["s3:Get*", "s3:Put*"],
+                resources=[bkt01.arn_for_objects("*")],
+                actions=["s3:Get*"],
                 conditions={ "StringEquals": { "s3:ExistingObjectTag/teamName" : "${aws:PrincipalTag/teamName}",
                                                "s3:ExistingObjectTag/projectName" : "${aws:PrincipalTag/projectName}" 
                                             }
@@ -167,29 +167,43 @@ class S3RestrictObjectAccessBasedOnTagsAbacStack(core.Stack):
 
         roleStmt4=iam.PolicyStatement(
                 effect=iam.Effect.ALLOW,
+                resources=[bkt01.arn_for_objects("*")],
+                actions=["s3:PutObject","s3:PutObjectTagging","s3:PutObjectVersionTagging"],
+                conditions={ "StringEquals": { "s3:RequestObjectTag/teamName" : "${aws:PrincipalTag/teamName}",
+                                               "s3:RequestObjectTag/projectName" : "${aws:PrincipalTag/projectName}" 
+                                            }
+                        }
+            )
+        roleStmt4.sid="WriteTaggedObjectOwnedByThem"
+
+        roleStmt5=iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
                 resources=[bkt01.bucket_arn, bkt01.arn_for_objects("*")],
-                actions=["s3:Put*"],
+                actions=["s3:*"],
                 conditions={ 
                     "StringEquals" : { 
                         "${aws:PrincipalTag/projectAdmin}": [ "yes" ]
                     }
                 }
             )
-        roleStmt4.sid="FullAccessToAdminsFromSameTeam"
+        roleStmt5.sid="FullAccessToAdminsFromSameTeam"
 
         unicornTeamProjectRedRole.add_to_policy( roleStmt1 )
         unicornTeamProjectRedRole.add_to_policy( roleStmt2 )
         unicornTeamProjectRedRole.add_to_policy( roleStmt3 )
         unicornTeamProjectRedRole.add_to_policy( roleStmt4 )
+        unicornTeamProjectRedRole.add_to_policy( roleStmt5 )
 
         # Add same permissions to projectBlueRole
         unicornTeamProjectBlueRole.add_to_policy( roleStmt1 )
         unicornTeamProjectBlueRole.add_to_policy( roleStmt2 )
         unicornTeamProjectBlueRole.add_to_policy( roleStmt3 )
         unicornTeamProjectBlueRole.add_to_policy( roleStmt4 )
+        unicornTeamProjectBlueRole.add_to_policy( roleStmt5 )
 
         # Add same permissions to projectAdminRole
         unicornTeamProjectAdminRole.add_to_policy( roleStmt1 )
         unicornTeamProjectAdminRole.add_to_policy( roleStmt2 )
         unicornTeamProjectAdminRole.add_to_policy( roleStmt3 )
         unicornTeamProjectAdminRole.add_to_policy( roleStmt4 )
+        unicornTeamProjectAdminRole.add_to_policy( roleStmt5 )

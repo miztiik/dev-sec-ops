@@ -393,10 +393,7 @@
               "Sid": "AllowRootLevelListingOfBucket"
             },
             {
-              "Action": [
-                "s3:Get*",
-                "s3:Put*"
-              ],
+              "Action": "s3:Get*",
               "Condition": {
                 "StringEquals": {
                   "s3:ExistingObjectTag/teamName": "${aws:PrincipalTag/teamName}",
@@ -404,32 +401,53 @@
                 }
               },
               "Effect": "Allow",
-              "Resource": [
-                {
-                  "Fn::GetAtt": [
-                    "abacBucket74625259",
-                    "Arn"
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    {
+                      "Fn::GetAtt": [
+                        "abacBucket74625259",
+                        "Arn"
+                      ]
+                    },
+                    "/*"
                   ]
-                },
-                {
-                  "Fn::Join": [
-                    "",
-                    [
-                      {
-                        "Fn::GetAtt": [
-                          "abacBucket74625259",
-                          "Arn"
-                        ]
-                      },
-                      "/*"
-                    ]
-                  ]
-                }
-              ],
+                ]
+              },
               "Sid": "ReadOnlyAccessToTeams"
             },
             {
-              "Action": "s3:Put*",
+              "Action": [
+                "s3:PutObject",
+                "s3:PutObjectTagging",
+                "s3:PutObjectVersionTagging"
+              ],
+              "Condition": {
+                "StringEquals": {
+                  "s3:RequestObjectTag/teamName": "${aws:PrincipalTag/teamName}",
+                  "s3:RequestObjectTag/projectName": "${aws:PrincipalTag/projectName}"
+                }
+              },
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    {
+                      "Fn::GetAtt": [
+                        "abacBucket74625259",
+                        "Arn"
+                      ]
+                    },
+                    "/*"
+                  ]
+                ]
+              },
+              "Sid": "WriteTaggedObjectOwnedByThem"
+            },
+            {
+              "Action": "s3:*",
               "Condition": {
                 "StringEquals": {
                   "${aws:PrincipalTag/projectAdmin}": [
@@ -551,10 +569,7 @@
               "Sid": "AllowRootLevelListingOfBucket"
             },
             {
-              "Action": [
-                "s3:Get*",
-                "s3:Put*"
-              ],
+              "Action": "s3:Get*",
               "Condition": {
                 "StringEquals": {
                   "s3:ExistingObjectTag/teamName": "${aws:PrincipalTag/teamName}",
@@ -562,32 +577,53 @@
                 }
               },
               "Effect": "Allow",
-              "Resource": [
-                {
-                  "Fn::GetAtt": [
-                    "abacBucket74625259",
-                    "Arn"
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    {
+                      "Fn::GetAtt": [
+                        "abacBucket74625259",
+                        "Arn"
+                      ]
+                    },
+                    "/*"
                   ]
-                },
-                {
-                  "Fn::Join": [
-                    "",
-                    [
-                      {
-                        "Fn::GetAtt": [
-                          "abacBucket74625259",
-                          "Arn"
-                        ]
-                      },
-                      "/*"
-                    ]
-                  ]
-                }
-              ],
+                ]
+              },
               "Sid": "ReadOnlyAccessToTeams"
             },
             {
-              "Action": "s3:Put*",
+              "Action": [
+                "s3:PutObject",
+                "s3:PutObjectTagging",
+                "s3:PutObjectVersionTagging"
+              ],
+              "Condition": {
+                "StringEquals": {
+                  "s3:RequestObjectTag/teamName": "${aws:PrincipalTag/teamName}",
+                  "s3:RequestObjectTag/projectName": "${aws:PrincipalTag/projectName}"
+                }
+              },
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    {
+                      "Fn::GetAtt": [
+                        "abacBucket74625259",
+                        "Arn"
+                      ]
+                    },
+                    "/*"
+                  ]
+                ]
+              },
+              "Sid": "WriteTaggedObjectOwnedByThem"
+            },
+            {
+              "Action": "s3:*",
               "Condition": {
                 "StringEquals": {
                   "${aws:PrincipalTag/projectAdmin}": [
@@ -709,10 +745,7 @@
               "Sid": "AllowRootLevelListingOfBucket"
             },
             {
-              "Action": [
-                "s3:Get*",
-                "s3:Put*"
-              ],
+              "Action": "s3:Get*",
               "Condition": {
                 "StringEquals": {
                   "s3:ExistingObjectTag/teamName": "${aws:PrincipalTag/teamName}",
@@ -720,32 +753,53 @@
                 }
               },
               "Effect": "Allow",
-              "Resource": [
-                {
-                  "Fn::GetAtt": [
-                    "abacBucket74625259",
-                    "Arn"
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    {
+                      "Fn::GetAtt": [
+                        "abacBucket74625259",
+                        "Arn"
+                      ]
+                    },
+                    "/*"
                   ]
-                },
-                {
-                  "Fn::Join": [
-                    "",
-                    [
-                      {
-                        "Fn::GetAtt": [
-                          "abacBucket74625259",
-                          "Arn"
-                        ]
-                      },
-                      "/*"
-                    ]
-                  ]
-                }
-              ],
+                ]
+              },
               "Sid": "ReadOnlyAccessToTeams"
             },
             {
-              "Action": "s3:Put*",
+              "Action": [
+                "s3:PutObject",
+                "s3:PutObjectTagging",
+                "s3:PutObjectVersionTagging"
+              ],
+              "Condition": {
+                "StringEquals": {
+                  "s3:RequestObjectTag/teamName": "${aws:PrincipalTag/teamName}",
+                  "s3:RequestObjectTag/projectName": "${aws:PrincipalTag/projectName}"
+                }
+              },
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    {
+                      "Fn::GetAtt": [
+                        "abacBucket74625259",
+                        "Arn"
+                      ]
+                    },
+                    "/*"
+                  ]
+                ]
+              },
+              "Sid": "WriteTaggedObjectOwnedByThem"
+            },
+            {
+              "Action": "s3:*",
               "Condition": {
                 "StringEquals": {
                   "${aws:PrincipalTag/projectAdmin}": [
