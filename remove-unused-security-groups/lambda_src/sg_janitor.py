@@ -70,7 +70,11 @@ def janitor_for_security_groups(unused_sgs: dict) -> dict:
     for sg_id in unused_sgs.get('unused_sg_ids'):
         logging.info(f"Attempting to delete security group: {sg_id}")
         try:
-            ec2.delete_security_group(GroupId=sg_id)
+            resp=ec2.delete_security_group(GroupId=sg_id)
+            response_code = resp['ResponseMetadata']['HTTPStatusCode']
+            if response_code >= 400:
+                # logging.error(f"ERROR: {resp}")
+                raise ClientError(resp)
             #TODO: Can VPC ID too for more context if requred.
             sg_deleted.get('SecurityGroupIds').append({'SecurityGroupId': sg_id})
         except ClientError as e:
