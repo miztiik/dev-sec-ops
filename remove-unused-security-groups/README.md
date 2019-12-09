@@ -3,8 +3,6 @@
 
 Maintaing security groups across multiple VPCs, regions, accounts is quite an time consuming effort. I decided to automate this, with an lambda.
 
-
-
 ![Automatically removed unused old security groups](images/miztiik_automatically_remove_security_groups.png)
 
 Follow this article in **[Youtube](https://youtu.be/MhFlNOdMfRo)**
