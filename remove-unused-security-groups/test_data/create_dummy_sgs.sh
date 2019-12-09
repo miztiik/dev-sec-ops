@@ -1,7 +1,7 @@
 #!/bin/bash
 set -ex
 
-vpc_to_spam="vpc-075b9ed4763eba394"
+vpc_to_spam="vpc-b33cafc9a"
 for i in {1..3}
     do
        val="${RANDOM}"
