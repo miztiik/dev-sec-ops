@@ -40,7 +40,7 @@ class RemoveUnusedSecurityGroupsStack(core.Stack):
             runtime=_lambda.Runtime.PYTHON_3_7,
             # code=_lambda.Code.asset('lambda_src'),
             code=_lambda.InlineCode(code_body),
-            handler='sg_janitor.lambda_handler',
+            handler='index.lambda_handler',
             timeout=core.Duration.seconds(10)
         )
 
