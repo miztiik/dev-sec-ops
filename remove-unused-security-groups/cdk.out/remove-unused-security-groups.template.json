@@ -69,42 +69,7 @@
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Code": {
-          "S3Bucket": {
-            "Ref": "AssetParameters6ad0a19816ae8f6a386360c6ffcdf1cc627dfdfa070bbc1689e1b8992714343aS3Bucket9511EDF0"
-          },
-          "S3Key": {
-            "Fn::Join": [
-              "",
-              [
-                {
-                  "Fn::Select": [
-                    0,
-                    {
-                      "Fn::Split": [
-                        "||",
-                        {
-                          "Ref": "AssetParameters6ad0a19816ae8f6a386360c6ffcdf1cc627dfdfa070bbc1689e1b8992714343aS3VersionKeyA2F7BA07"
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "Fn::Select": [
-                    1,
-                    {
-                      "Fn::Split": [
-                        "||",
-                        {
-                          "Ref": "AssetParameters6ad0a19816ae8f6a386360c6ffcdf1cc627dfdfa070bbc1689e1b8992714343aS3VersionKeyA2F7BA07"
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            ]
-          }
+          "ZipFile": "# -*- coding: utf-8 -*-\n\"\"\"\n.. module: CleanUp unused security groups in a region using lambda\n    :platform: AWS\n    :copyright: (c) 2019 Mystique.,\n    :license: Apache, see LICENSE for more details.\n.. moduleauthor:: Mystique\n.. contactauthor:: miztiik@github issues\n\"\"\"\n\nimport boto3\nfrom botocore.exceptions import ClientError\nimport logging\n\n# Initialize Logger\nlogger = logging.getLogger()\nlogger.setLevel(logging.INFO)\n\ndef set_global_vars():\n    global_vars = {'status': False}\n    try:\n        global_vars['Owner']                    = \"Mystique\"\n        global_vars['Environment']              = \"Prod\"\n        global_vars['region_name']              = \"us-east-1\"\n        global_vars['tag_name']                 = \"serverless_security_group_janitor\"\n        global_vars['exclude_sgs']               = set([\"sg-04f19c7e87bdae9ef\", \"sg-f8ed38a1\", \"sg-0266f091db5460f56\"])\n        global_vars['status']                   = True\n    except Exception as e:\n        logger.error(\"Unable to set Global Environment variables. Exiting\")\n        global_vars['error_message']            = str(e)\n    return global_vars\n\ndef get_unused_sgs(excluded_sgs: set) -> dict:\n    resp_data = {'status': False, 'unused_sg_ids':set, 'error_message': ''}\n    try:\n        ec2 = boto3.resource('ec2')\n        #TODO: Use pagination\n        all_sgs = list(ec2.security_groups.all())\n        insts = list(ec2.instances.all())\n        all_sg_ids = set([sg.id for sg in all_sgs])\n        # Make a list of SGs associated with instances\n        inst_sg_ids=[]\n        for inst in insts:\n            for sg_id in inst.security_groups:\n                inst_sg_ids.append( sg_id.get('GroupId') )\n    except Exception as e:\n        resp_data['error_message'] = str(e)\n    # Lets unique the list\n    inst_sg_ids = set(inst_sg_ids)\n    # Unused Security Groups\n    unused_sg_ids = all_sg_ids - inst_sg_ids\n    # Let removed the excluded ones\n    resp_data['unused_sg_ids'] = unused_sg_ids - excluded_sgs\n    resp_data['status'] = True\n    return resp_data\n\ndef janitor_for_security_groups(unused_sgs: dict) -> dict:\n    \"\"\"\n    :param unused_sg_ids: Set of unqiue security group ids to be deleted\n    :param type: set\n\n    :return: resp_data Return a dictionary of data\n    :rtype: json\n    \"\"\"\n    sg_deleted = {'status': False, 'TotalSecurityGroupsDeleted':'','SecurityGroupIds': [] }\n    ec2 = boto3.client('ec2')\n    for sg_id in unused_sgs.get('unused_sg_ids'):\n        logging.info(f\"Attempting to delete security group: {sg_id}\")\n        try:\n            resp=ec2.delete_security_group(GroupId=sg_id)\n            response_code = resp['ResponseMetadata']['HTTPStatusCode']\n            if response_code >= 400:\n                # logging.error(f\"ERROR: {resp}\")\n                raise ClientError(resp)\n            #TODO: Can VPC ID too for more context if requred.\n            sg_deleted.get('SecurityGroupIds').append({'SecurityGroupId': sg_id})\n        except ClientError as e:\n            logging.error(f\"ERROR: {str(e.response)}\")\n            sg_deleted['error_message'] = f\"Unable to delete Security Group with id:{sg_id}. ERROR:{str(e)}\"\n    # Get the count of security groups deleted\n    if sg_deleted['SecurityGroupIds']:\n        sg_deleted['status'] = True\n        sg_deleted['TotalSecurityGroupsDeleted'] = len( sg_deleted['SecurityGroupIds'] )\n    else:\n        sg_deleted['TotalSecurityGroupsDeleted'] = 0\n    return sg_deleted\n\ndef lambda_handler(event, context):\n\n    global_vars = set_global_vars()\n    resp_data = {\"status\": False, \"error_message\" : '' }\n\n    if not global_vars.get('status'):\n        resp_data['error_message'] = global_vars.get('error_message')\n        return resp_data\n\n    unused_sgs = get_unused_sgs(global_vars.get('exclude_sgs'))\n    if not unused_sgs.get('status'):\n        resp_data['error_message'] = unused_sgs.get('error_message')\n        return resp_data\n\n    deleted_sgs = janitor_for_security_groups(unused_sgs)\n    resp_data = deleted_sgs\n    return resp_data\n\nif __name__ == '__main__':\n    lambda_handler(None, None)"
         },
         "Handler": "sg_janitor.lambda_handler",
         "Role": {
@@ -122,9 +87,7 @@
         "SecurityGroupJanitorServiceRoleCF49BC8D"
       ],
       "Metadata": {
-        "aws:cdk:path": "remove-unused-security-groups/SecurityGroupJanitor/Resource",
-        "aws:asset:path": "asset.6ad0a19816ae8f6a386360c6ffcdf1cc627dfdfa070bbc1689e1b8992714343a",
-        "aws:asset:property": "Code"
+        "aws:cdk:path": "remove-unused-security-groups/SecurityGroupJanitor/Resource"
       }
     },
     "SecurityGroupJanitorAllowEventRuleremoveunusedsecuritygroupsdeleteunusedsgs4D4E2054D78F7CF2": {
@@ -169,20 +132,6 @@
       "Metadata": {
         "aws:cdk:path": "remove-unused-security-groups/delete_unused_sgs/Resource"
       }
-    }
-  },
-  "Parameters": {
-    "AssetParameters6ad0a19816ae8f6a386360c6ffcdf1cc627dfdfa070bbc1689e1b8992714343aS3Bucket9511EDF0": {
-      "Type": "String",
-      "Description": "S3 bucket for asset \"6ad0a19816ae8f6a386360c6ffcdf1cc627dfdfa070bbc1689e1b8992714343a\""
-    },
-    "AssetParameters6ad0a19816ae8f6a386360c6ffcdf1cc627dfdfa070bbc1689e1b8992714343aS3VersionKeyA2F7BA07": {
-      "Type": "String",
-      "Description": "S3 key for asset version \"6ad0a19816ae8f6a386360c6ffcdf1cc627dfdfa070bbc1689e1b8992714343a\""
-    },
-    "AssetParameters6ad0a19816ae8f6a386360c6ffcdf1cc627dfdfa070bbc1689e1b8992714343aArtifactHash862B1673": {
-      "Type": "String",
-      "Description": "Artifact hash for asset \"6ad0a19816ae8f6a386360c6ffcdf1cc627dfdfa070bbc1689e1b8992714343a\""
     }
   }
 }

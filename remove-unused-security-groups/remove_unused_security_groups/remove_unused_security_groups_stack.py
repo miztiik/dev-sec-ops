@@ -29,13 +29,17 @@ class RemoveUnusedSecurityGroupsStack(core.Stack):
         lambda_perms_stmt.effect=iam.Effect.ALLOW
         lambda_perms_stmt.sid="AllowLambdaToDescribeSecurityGroupsInstancesAndDeleteSecurityGroups"
         
+        with open("lambda_src/sg_janitor.py", encoding="utf-8") as fp:
+            code_body = fp.read()
+
         # Defines an AWS Lambda resource
         sg_janitor = _lambda.Function(
             self,
             id='SecurityGroupJanitor',
             function_name="SecurityGroupJanitor",
             runtime=_lambda.Runtime.PYTHON_3_7,
-            code=_lambda.Code.asset('lambda_src'),
+            # code=_lambda.Code.asset('lambda_src'),
+            code=_lambda.InlineCode(code_body),
             handler='sg_janitor.lambda_handler',
             timeout=core.Duration.seconds(10)
         )

@@ -38,7 +38,6 @@ def get_unused_sgs(excluded_sgs: set) -> dict:
         all_sgs = list(ec2.security_groups.all())
         insts = list(ec2.instances.all())
         all_sg_ids = set([sg.id for sg in all_sgs])
-        # all_inst_sgs = set([sg['GroupName'] for inst in insts for sg in inst.security_groups])
         # Make a list of SGs associated with instances
         inst_sg_ids=[]
         for inst in insts:
@@ -46,8 +45,6 @@ def get_unused_sgs(excluded_sgs: set) -> dict:
                 inst_sg_ids.append( sg_id.get('GroupId') )
     except Exception as e:
         resp_data['error_message'] = str(e)
-    
-
     # Lets unique the list
     inst_sg_ids = set(inst_sg_ids)
     # Unused Security Groups
@@ -80,7 +77,7 @@ def janitor_for_security_groups(unused_sgs: dict) -> dict:
         except ClientError as e:
             logging.error(f"ERROR: {str(e.response)}")
             sg_deleted['error_message'] = f"Unable to delete Security Group with id:{sg_id}. ERROR:{str(e)}"
-    # Get the count of security groups deleted to provide a descriptive message
+    # Get the count of security groups deleted
     if sg_deleted['SecurityGroupIds']:
         sg_deleted['status'] = True
         sg_deleted['TotalSecurityGroupsDeleted'] = len( sg_deleted['SecurityGroupIds'] )
@@ -91,7 +88,6 @@ def janitor_for_security_groups(unused_sgs: dict) -> dict:
 def lambda_handler(event, context):
 
     global_vars = set_global_vars()
-
     resp_data = {"status": False, "error_message" : '' }
 
     if not global_vars.get('status'):
