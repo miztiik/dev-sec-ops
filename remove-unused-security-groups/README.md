@@ -23,7 +23,7 @@ It is quite extensible, you can programatically add to exclude list or process t
 
 ## Lab Setup
 
-  In this repo, I have included a cloudformation template(_look in cdk.out_ directory) that provisions all the necessary resources.
+  In this repo, I have included a cloudformation template(look for `/cdk.out/remove-unused-security-groups.template.json`) that provisions all the necessary resources.
 
 - Lambda to delete security groups
 - IAM Role for the lambda execution
