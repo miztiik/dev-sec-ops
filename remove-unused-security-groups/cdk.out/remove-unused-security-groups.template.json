@@ -1,0 +1,188 @@
+{
+  "Resources": {
+    "SecurityGroupJanitorServiceRoleCF49BC8D": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+              ]
+            ]
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "remove-unused-security-groups/SecurityGroupJanitor/ServiceRole/Resource"
+      }
+    },
+    "SecurityGroupJanitorServiceRoleDefaultPolicyF289DD19": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "ec2:DescribeInstances",
+                "ec2:DescribeSecurityGroupReferences",
+                "ec2:DescribeSecurityGroups",
+                "ec2:DescribeStaleSecurityGroups",
+                "ec2:DeleteSecurityGroup"
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+              "Sid": "AllowLambdaToDescribeSecurityGroupsInstancesAndDeleteSecurityGroups"
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "PolicyName": "SecurityGroupJanitorServiceRoleDefaultPolicyF289DD19",
+        "Roles": [
+          {
+            "Ref": "SecurityGroupJanitorServiceRoleCF49BC8D"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "remove-unused-security-groups/SecurityGroupJanitor/ServiceRole/DefaultPolicy/Resource"
+      }
+    },
+    "SecurityGroupJanitor9CF4173D": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "S3Bucket": {
+            "Ref": "AssetParameters076d05cbdc1f389194104a0a009c1597e45e567933e169a7bc4626313c3dc5c6S3Bucket1B856B22"
+          },
+          "S3Key": {
+            "Fn::Join": [
+              "",
+              [
+                {
+                  "Fn::Select": [
+                    0,
+                    {
+                      "Fn::Split": [
+                        "||",
+                        {
+                          "Ref": "AssetParameters076d05cbdc1f389194104a0a009c1597e45e567933e169a7bc4626313c3dc5c6S3VersionKey14629E79"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "Fn::Select": [
+                    1,
+                    {
+                      "Fn::Split": [
+                        "||",
+                        {
+                          "Ref": "AssetParameters076d05cbdc1f389194104a0a009c1597e45e567933e169a7bc4626313c3dc5c6S3VersionKey14629E79"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        },
+        "Handler": "sg_janitor.lambda_handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "SecurityGroupJanitorServiceRoleCF49BC8D",
+            "Arn"
+          ]
+        },
+        "Runtime": "python3.7",
+        "FunctionName": "SecurityGroupJanitor",
+        "Timeout": 10
+      },
+      "DependsOn": [
+        "SecurityGroupJanitorServiceRoleDefaultPolicyF289DD19",
+        "SecurityGroupJanitorServiceRoleCF49BC8D"
+      ],
+      "Metadata": {
+        "aws:cdk:path": "remove-unused-security-groups/SecurityGroupJanitor/Resource",
+        "aws:asset:path": "asset.076d05cbdc1f389194104a0a009c1597e45e567933e169a7bc4626313c3dc5c6",
+        "aws:asset:property": "Code"
+      }
+    },
+    "SecurityGroupJanitorAllowEventRuleremoveunusedsecuritygroupsdeleteunusedsgs4D4E2054D78F7CF2": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "SecurityGroupJanitor9CF4173D",
+            "Arn"
+          ]
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": {
+          "Fn::GetAtt": [
+            "deleteunusedsgs824006AC",
+            "Arn"
+          ]
+        }
+      },
+      "Metadata": {
+        "aws:cdk:path": "remove-unused-security-groups/SecurityGroupJanitor/AllowEventRuleremoveunusedsecuritygroupsdeleteunusedsgs4D4E2054"
+      }
+    },
+    "deleteunusedsgs824006AC": {
+      "Type": "AWS::Events::Rule",
+      "Properties": {
+        "ScheduleExpression": "rate(7 days)",
+        "State": "ENABLED",
+        "Targets": [
+          {
+            "Arn": {
+              "Fn::GetAtt": [
+                "SecurityGroupJanitor9CF4173D",
+                "Arn"
+              ]
+            },
+            "Id": "Target0"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "remove-unused-security-groups/delete_unused_sgs/Resource"
+      }
+    }
+  },
+  "Parameters": {
+    "AssetParameters076d05cbdc1f389194104a0a009c1597e45e567933e169a7bc4626313c3dc5c6S3Bucket1B856B22": {
+      "Type": "String",
+      "Description": "S3 bucket for asset \"076d05cbdc1f389194104a0a009c1597e45e567933e169a7bc4626313c3dc5c6\""
+    },
+    "AssetParameters076d05cbdc1f389194104a0a009c1597e45e567933e169a7bc4626313c3dc5c6S3VersionKey14629E79": {
+      "Type": "String",
+      "Description": "S3 key for asset version \"076d05cbdc1f389194104a0a009c1597e45e567933e169a7bc4626313c3dc5c6\""
+    },
+    "AssetParameters076d05cbdc1f389194104a0a009c1597e45e567933e169a7bc4626313c3dc5c6ArtifactHash06BD923F": {
+      "Type": "String",
+      "Description": "Artifact hash for asset \"076d05cbdc1f389194104a0a009c1597e45e567933e169a7bc4626313c3dc5c6\""
+    }
+  }
+}

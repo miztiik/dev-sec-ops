@@ -37,12 +37,12 @@ class RemoveUnusedSecurityGroupsStack(core.Stack):
             runtime=_lambda.Runtime.PYTHON_3_7,
             code=_lambda.Code.asset('lambda_src'),
             handler='sg_janitor.lambda_handler',
-            timeout=core.Duration.seconds(11)
+            timeout=core.Duration.seconds(10)
         )
 
         sg_janitor.add_to_role_policy(lambda_perms_stmt)
 
-        # Trigger for lambda
+        # CloudWatch Trigger for lambda
         sg_janitor_trigger = aws_events.Rule(
             self, 
             id="delete_unused_sgs",
