@@ -1,5 +1,5 @@
 
-# Security: Automatically removed unused old security groups
+# Security: Automatically remove unused old security groups using AWS Lambda
 
 Maintaing security groups across multiple VPCs, regions, accounts is quite an time consuming effort. I decided to automate this, with an lambda.
 
