@@ -1,0 +1,381 @@
+# Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.  
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this
+# software and associated documentation files (the "Software"), to deal in the Software
+# without restriction, including without limitation the rights to use, copy, modify,
+# merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+# permit persons to whom the Software is furnished to do so.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+# PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+# OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+Description: >
+  Sample stack illustrating security response automation concepts.  This stack is intended for demonstration purposes only.
+  You will be billed for the AWS resources used if you create a stack from this template. 
+
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  SecurityContactEmail:
+    Description: Email address to receive notifications. Must be a valid email address.
+    Type: String
+    AllowedPattern: ^(?:[a-z0-9!#$%&'*+\/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+\/=?^_`{|}~-]+)*|"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])*")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\])$
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+    - Label:
+        default: Configuration
+      Parameters:
+      - SecurityContactEmail
+    ParameterLabels:
+      AdminEmail:
+        default: Notification email (REQUIRED)
+
+
+Resources:
+
+  CloudTrailStartLoggingLambdaCWE:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: "Security Hub IAMUser-CloudTrailLoggingDisabled Response Function"
+      Handler : "index.handler"
+      MemorySize: 1024
+      Timeout: 300
+      Role: !GetAtt CloudTrailStartLoggingIAMRole.Arn
+      Runtime : "python3.7"
+      Environment:
+        Variables:
+          SNSTOPIC: !Ref CloudTrailStartLoggingSNSTopic
+      Code:
+        ZipFile: |
+          # Description: Lambda function that restarts CloudTrail if logging and sends a notification in response to CloudTrail StopLogging.
+          #
+
+          import boto3
+          import logging
+          import os
+          import botocore.session
+          from botocore.exceptions import ClientError
+          session = botocore.session.get_session()
+
+          logger=logging.getLogger(__name__)
+          logger.setLevel(logging.INFO)
+
+          snsARN = os.environ['SNSTOPIC']
+
+
+          def get_cloudtrail_status(trailname):
+              client = boto3.client('cloudtrail')
+              response = client.get_trail_status(Name=trailname)
+
+              if response['ResponseMetadata']['HTTPStatusCode'] == 200:
+                  response = response['IsLogging']
+                  logger.info("Status of CloudTrail logging for %s - %s" % (trailname, response))
+              else:
+                  logger.error("Error gettingCloudTrail logging status for %s - %s" % (trailname, response))
+              
+              return response
+
+
+          def enable_cloudtrail(trailname):
+              client = boto3.client('cloudtrail')
+              response = client.start_logging(Name=trailname)
+
+              if response['ResponseMetadata']['HTTPStatusCode'] == 200:
+                  logger.info("Response on enable CloudTrail logging for %s - %s" % (trailname, response))
+              else:
+                  logger.error("Error enabling CloudTrail logging for %s - %s" % (trailname, response))
+              
+              return response
+
+
+          def notify_admin(topic, description):
+              snsclient = boto3.client('sns')
+              response = snsclient.publish(
+                  TargetArn = topic,
+                  Message = "Event description: \"%s\" " %description,
+                  Subject = 'CloudTrail Logging Alert'
+
+                  )
+
+              if response['ResponseMetadata']['HTTPStatusCode'] == 200:
+                  logger.info("SNS notification sent successfully - %s" %response)
+              else:
+                  logger.error("Error sending SNS notification - %s" %response)
+
+              return response
+
+
+          # Lambda entry point
+          def handler(event, context):
+
+              logger.setLevel(logging.INFO)
+
+              logger.info("Starting automatic CloudTrail remediation response")
+              
+              description = event['detail']
+
+              logger.debug("Event is-- %s" %event)
+              logger.debug("snsARN is-- %s" %snsARN)
+                
+              try:
+                response = None
+                if 'name' in event['detail']['requestParameters']:
+                    trailARN = event['detail']['requestParameters']['name']
+                    response = get_cloudtrail_status(trailARN)
+                    logger.debug("trailARN is--- %s" %trailARN)
+                if response == False:
+                    response = enable_cloudtrail(trailARN)
+                    if response['ResponseMetadata']['HTTPStatusCode'] == 200:
+                        message = "CloudTrail logging restarted automatically for trail - " + trailARN + "\n \n Event:" + str(description)
+                        notify_admin(snsARN, message)
+                        logger.info("Completed automatic CloudTrail remediation response for %s - %s" % (trailARN, response))
+                elif response == True:
+                    message = "CloudTrail logging is already enabled for - " + trailARN + "\n \n Event:" + str(description)
+                    notify_admin(snsARN, message)
+                    logger.info("CloudTrail logging is already enabled for %s." %trailARN)
+                else:
+                    message = "Event:" + str(description)
+                    notify_admin(snsARN, message)
+                    logger.info("Event: %s, Response: %s" % (event, response))
+
+              except ClientError as e:
+                  message = "%s \n \n %s" % (e, event)
+                  logger.error("%s, %s" % (e, event))
+                  notify_admin(snsARN, message)
+
+  CloudTrailStartLoggingLambdaSH:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: "Security Hub IAMUser-CloudTrailLoggingDisabled Response Function"
+      Handler : "index.handler"
+      MemorySize: 1024
+      Timeout: 300
+      Role: !GetAtt CloudTrailStartLoggingIAMRole.Arn
+      Runtime : "python3.7"
+      Environment:
+        Variables:
+          SNSTOPIC: !Ref CloudTrailStartLoggingSNSTopic
+      Code:
+        ZipFile: |
+          # Description: Lambda function that restarts CloudTrail if logging and sends a notification in response to Security Hub Security Hub IAMUser-CloudTrailLoggingDisabled.
+          #
+
+          import boto3
+          import logging
+          import os
+          import botocore.session
+          from botocore.exceptions import ClientError
+          session = botocore.session.get_session()
+
+          logger=logging.getLogger(__name__)
+          logger.setLevel(logging.INFO)
+
+          snsARN = os.environ['SNSTOPIC']
+
+
+          def get_cloudtrail_status(trailname):
+              client = boto3.client('cloudtrail')
+              response = client.get_trail_status(Name=trailname)
+
+              if response['ResponseMetadata']['HTTPStatusCode'] == 200:
+                  response = response['IsLogging']
+                  logger.info("Status of CloudTrail logging for %s - %s" % (trailname, response))
+              else:
+                  logger.error("Error gettingCloudTrail logging status for %s - %s" % (trailname, response))
+              
+              return response
+
+
+          def enable_cloudtrail(trailname):
+              client = boto3.client('cloudtrail')
+              response = client.start_logging(Name=trailname)
+
+              if response['ResponseMetadata']['HTTPStatusCode'] == 200:
+                  logger.info("Response on enable CloudTrail logging for %s - %s" % (trailname, response))
+              else:
+                  logger.error("Error enabling CloudTrail logging for %s - %s" % (trailname, response))
+              
+              return response
+
+
+          def notify_admin(topic, description):
+              snsclient = boto3.client('sns')
+              response = snsclient.publish(
+                  TargetArn = topic,
+                  Message = "CloudTrail logging state change detected. Event description: \"%s\" " %description,
+                  Subject = 'CloudTrail Logging Alert'
+
+                  )
+
+              if response['ResponseMetadata']['HTTPStatusCode'] == 200:
+                  logger.info("SNS notification sent successfully - %s" %response)
+              else:
+                  logger.error("Error sending SNS notification - %s" %response)
+
+              return response
+
+
+          # Lambda entry point
+          def handler(event, context):
+
+              logger.setLevel(logging.INFO)
+
+              logger.info("Starting automatic CloudTrail remediation response")
+
+              trailARN = event['detail']['findings'][0]['ProductFields']['action/awsApiCallAction/affectedResources/AWS::CloudTrail::Trail']
+              
+              description = event['detail']['findings'][0]['Description']
+              region = event['detail']['findings'][0]['Resources'][0]['Region']
+
+              logger.debug("Event is-- %s" %event)
+              logger.debug("trailARN is--- %s" %trailARN)
+              logger.debug("snsARN is-- %s" %snsARN)
+                
+              try:
+                  response = enable_cloudtrail(trailARN)
+                  status = get_cloudtrail_status(trailARN)
+                  if response['ResponseMetadata']['HTTPStatusCode'] == 200:
+                      message = "CloudTrail logging status for trail - " + trailARN + ": " + str(status) + "\n \n" + str(description) + "\n \n" + \
+                              "Review additional information in Security Hub - https://console.aws.amazon.com/securityhub/home?region=" + region + "#/findings"
+                      notify_admin(snsARN, message)
+                      logger.info("Completed automatic CloudTrail remediation response for %s - %s" % (trailARN, response))
+
+                  else:
+                      logger.error("Something went wrong - %s, %s" % (trailARN, event))
+
+              except ClientError as e:
+                  message = "%s \n \n %s" % (e, event)
+                  logger.error("%s, %s" % (e, event))
+                  notify_admin(snsARN, message)
+
+  # Lambda Execution role with needed IAM permissions  
+  CloudTrailStartLoggingIAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - # allow Lambda service to use this role
+            Effect: "Allow"
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+            Action:
+              "sts:AssumeRole"
+      Path: "/"
+      Policies:
+      - PolicyName: inline
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            # can start logging on any trail
+          - Effect: Allow
+            Action:
+            - cloudtrail:StartLogging
+            - cloudtrail:GetTrailStatus
+            Resource: "*"
+            # can send a message to one SNS topic
+          - Effect: Allow
+            Action:
+            - sns:Publish
+            Resource: !Ref CloudTrailStartLoggingSNSTopic
+            # can write logs in CloudWatchLogs
+          - Effect: Allow
+            Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Resource: "arn:aws:logs:*:*:*"
+
+
+  # EventBridge event forwards Security Hub finding to Lambda
+  CloudTrailStartLoggingEventRuleforSH:
+    Type: "AWS::Events::Rule"
+    Properties:
+      Description: "CloudTrail - start logging if trail stopped"
+      # pattern matches the nested JSON format of a specific Security Hub finding
+      EventPattern:
+        source:
+          - aws.securityhub
+        detail-type:
+          - "Security Hub Findings - Imported"
+        detail:
+          findings:
+            Types:
+              - "TTPs/Defense Evasion/Stealth:IAMUser-CloudTrailLoggingDisabled"
+      State: "ENABLED"
+      Targets:
+        - # invokes the Lambda function if pattern is matched
+          Arn: !GetAtt CloudTrailStartLoggingLambdaSH.Arn
+          Id: "SecurityResponseAutomation-CloudTrailLoggingRemediationSH"
+
+  # EventBridge event forwards Security Hub finding to Lambda
+  CloudTrailStartLoggingEventRuleforCWE:
+    Type: "AWS::Events::Rule"
+    Properties:
+      Description: "CloudTrail - start logging if trail stopped"
+      # pattern matches the nested JSON format of a specific Security Hub finding
+      EventPattern:
+        source:
+          - aws.cloudtrail
+        detail-type:
+          - "AWS API Call via CloudTrail"
+        detail:
+          eventSource:
+            - cloudtrail.amazonaws.com
+          eventName:
+            - StopLogging
+            - DeleteTrail
+            - UpdateTrail
+            - RemoveTags
+            - AddTags
+            - PutEventSelectors
+      State: "ENABLED"
+      Targets:
+        - # invokes the Lambda function if pattern is matched
+          Arn: !GetAtt CloudTrailStartLoggingLambdaCWE.Arn
+          Id: "SecurityResponseAutomation-CloudTrailLoggingRemediationCWE"
+
+  # Gives EventBridge service permissions to invoke the Lambda function
+
+  CloudTrailStartLoggingInvokePermissionsCWE:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      FunctionName: !Ref "CloudTrailStartLoggingLambdaCWE"
+      Action: "lambda:InvokeFunction"
+      Principal: "events.amazonaws.com"
+
+  CloudTrailStartLoggingInvokePermissionsSH:
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      FunctionName: !Ref "CloudTrailStartLoggingLambdaSH"
+      Action: "lambda:InvokeFunction"
+      Principal: "events.amazonaws.com"
+
+  # defines the SNS topic with email address as the only subscriber
+  CloudTrailStartLoggingSNSTopic:
+    Type: "AWS::SNS::Topic"
+    Properties:
+      Subscription:
+        -
+          Endpoint: !Ref SecurityContactEmail
+          Protocol: "email"
+
+Outputs:
+  LambdaFunctionCWE:
+    Description: Lambda Function that restarts CloudTrail logging for CloudWatch Event.
+    Value: !Sub https://console.aws.amazon.com/lambda/home?region=${AWS::Region}#/functions/${CloudTrailStartLoggingLambdaCWE}
+  EventBridgeRuleCWE:
+    Description: EventBridge rule that invokes the lambda function for CloudWatch Event.
+    Value: !Sub https://console.aws.amazon.com/events/home?region=${AWS::Region}#/eventbus/default/rules/${CloudTrailStartLoggingEventRuleforCWE}
+  LambdaFunctionSH:
+    Description: Lambda Function that restarts CloudTrail logging for Security Hub.
+    Value: !Sub https://console.aws.amazon.com/lambda/home?region=${AWS::Region}#/functions/${CloudTrailStartLoggingLambdaSH}
+  EventBridgeRuleSH:
+    Description: EventBridge rule that invokes the lambda function for Security Hub.
+    Value: !Sub https://console.aws.amazon.com/events/home?region=${AWS::Region}#/eventbus/default/rules/${CloudTrailStartLoggingEventRuleforSH}
