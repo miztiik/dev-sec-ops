@@ -49,9 +49,9 @@
   echo -e "YOUR-PUBLIC-KEY-BETWEEN-QUOTES" >> /home/ec2-user/.ssh/authorized_keys
   ```
 
-### Contact Us
+### Buy me a coffee
 
-You can reach out to us to get more details through [here](https://youtube.com/c/valaxytechnologies/about).
+Buy me a coffee ☕ here `https://paypal.me/valaxy`, _or_ You can reach out to get more details through [here](https://youtube.com/c/valaxytechnologies/about).
 
 #### References
 
