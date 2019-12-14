@@ -1,0 +1,185 @@
+{
+  "Resources": {
+    "AWSConfigRule": {
+      "Type": "AWS::Config::ConfigRule",
+      "Properties": {
+        "ConfigRuleName": {
+          "Ref": "ConfigRuleName"
+        },
+        "Description": "Checks whether versioning is enabled for your S3 buckets.",
+        "InputParameters": {
+          "isMfaDeleteEnabled": {
+            "Fn::If": [
+              "isMfaDeleteEnabled",
+              {
+                "Ref": "isMfaDeleteEnabled"
+              },
+              {
+                "Ref": "AWS::NoValue"
+              }
+            ]
+          }
+        },
+        "Scope": {
+          "ComplianceResourceTypes": [
+            "AWS::S3::Bucket"
+          ]
+        },
+        "Source": {
+          "Owner": "AWS",
+          "SourceIdentifier": "S3_BUCKET_VERSIONING_ENABLED"
+        }
+      }
+    },
+    "RemediationForConfigRule": {
+      "Type": "AWS::Config::RemediationConfiguration",
+      "Properties": {
+        "Automatic": true,
+        "ConfigRuleName": {
+          "Ref": "AWSConfigRule"
+        },
+        "MaximumAutomaticAttempts": 5,
+        "RetryAttemptSeconds": 60,
+        "TargetId": "AWS-ConfigureS3BucketVersioning",
+        "TargetType": "SSM_DOCUMENT",
+        "TargetVersion": "1",
+        "Parameters": {
+          "AutomationAssumeRole": {
+            "StaticValue": {
+              "Values": [
+                {
+                  "Fn::GetAtt": [
+                    "AutoRemediationIamRole",
+                    "Arn"
+                  ]
+                }
+              ]
+            }
+          },
+          "BucketName": {
+            "ResourceValue": {
+              "Value": "RESOURCE_ID"
+            }
+          }
+        }
+      }
+    },
+    "AutoRemediationIamRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "ec2.amazonaws.com",
+                  "events.amazonaws.com",
+                  "ssm.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/service-role/AmazonSSMAutomationRole"
+        ],
+        "Policies": [
+          {
+            "PolicyName": "AllowPutBucketVersioning",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Sid": "AllowPutBucketVersioning",
+                  "Effect": "Allow",
+                  "Action": "s3:PutBucketVersioning",
+                  "Resource": "arn:aws:s3:::*"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "AutomationPassRolePolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "passAutomationRole",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "iam:PassRole"
+              ],
+              "Resource": {
+                "Fn::GetAtt": [
+                  "AutoRemediationIamRole",
+                  "Arn"
+                ]
+              }
+            }
+          ]
+        },
+        "Roles": [
+          {
+            "Ref": "AutoRemediationIamRole"
+          }
+        ]
+      }
+    }
+  },
+  "Parameters": {
+    "ConfigRuleName": {
+      "Type": "String",
+      "Default": "s3-bucket-versioning-enabled",
+      "Description": "The name that you assign to the AWS Config rule.",
+      "MinLength": "1",
+      "ConstraintDescription": "This parameter is required."
+    },
+    "isMfaDeleteEnabled": {
+      "Type": "String",
+      "Default": ""
+    }
+  },
+  "Metadata": {
+    "AWS::CloudFormation::Interface": {
+      "ParameterGroups": [
+        {
+          "Label": {
+            "default": "Required"
+          },
+          "Parameters": []
+        },
+        {
+          "Label": {
+            "default": "Optional"
+          },
+          "Parameters": [
+            "isMfaDeleteEnabled"
+          ]
+        }
+      ]
+    }
+  },
+  "Conditions": {
+    "isMfaDeleteEnabled": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            "",
+            {
+              "Ref": "isMfaDeleteEnabled"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
