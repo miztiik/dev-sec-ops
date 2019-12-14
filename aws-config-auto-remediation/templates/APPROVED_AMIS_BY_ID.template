@@ -1,0 +1,175 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Miztiik Stack to Auto remediation configuration to stop or terminate EC2 instances running unapproved AMIs (by AMI ID)",
+  "Resources": {
+    "AWSConfigRule": {
+      "Type": "AWS::Config::ConfigRule",
+      "Properties": {
+        "ConfigRuleName": {
+          "Ref": "ConfigRuleName"
+        },
+        "Description": "Checks whether running instances are using specified AMIs.",
+        "InputParameters": {
+          "amiIds": {
+            "Fn::If": [
+              "amiIds",
+              {
+                "Ref": "amiIds"
+              },
+              {
+                "Ref": "AWS::NoValue"
+              }
+            ]
+          }
+        },
+        "Scope": {
+          "ComplianceResourceTypes": [
+            "AWS::EC2::Instance"
+          ]
+        },
+        "Source": {
+          "Owner": "AWS",
+          "SourceIdentifier": "APPROVED_AMIS_BY_ID"
+        }
+      }
+    },
+    "RemediationForConfigRule": {
+      "Type": "AWS::Config::RemediationConfiguration",
+      "Properties": {
+        "Automatic": true,
+        "ConfigRuleName": {
+          "Ref": "AWSConfigRule"
+        },
+        "MaximumAutomaticAttempts": 5,
+        "RetryAttemptSeconds": 60,
+        "TargetId": "AWS-StopEC2Instance",
+        "TargetType": "SSM_DOCUMENT",
+        "TargetVersion": "1",
+        "Parameters": {
+          "AutomationAssumeRole": {
+            "StaticValue": {
+              "Values": [
+                {
+                  "Fn::GetAtt": [
+                    "AutoRemediationIamRole",
+                    "Arn"
+                  ]
+                }
+              ]
+            }
+          },
+          "InstanceId": {
+            "ResourceValue": {
+              "Value": "RESOURCE_ID"
+            }
+          }
+        }
+      }
+    },
+    "AutoRemediationIamRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "ec2.amazonaws.com",
+                  "events.amazonaws.com",
+                  "ssm.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/service-role/AmazonSSMAutomationRole"
+        ],
+        "Policies": []
+      }
+    },
+    "AutomationPassRolePolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "passAutomationRole",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "iam:PassRole"
+              ],
+              "Resource": {
+                "Fn::GetAtt": [
+                  "AutoRemediationIamRole",
+                  "Arn"
+                ]
+              }
+            }
+          ]
+        },
+        "Roles": [
+          {
+            "Ref": "AutoRemediationIamRole"
+          }
+        ]
+      }
+    }
+  },
+  "Parameters": {
+    "ConfigRuleName": {
+      "Type": "String",
+      "Default": "approved-amis-by-id",
+      "Description": "The name that you assign to the AWS Config rule.",
+      "MinLength": "1",
+      "ConstraintDescription": "This parameter is required."
+    },
+    "amiIds": {
+      "Type": "String",
+      "Description": "Specify AMI IDs (comma separated list of up to 10).",
+      "MinLength": "1",
+      "ConstraintDescription": "This parameter is required.",
+      "Default": "ami-0ff8a91507f77f867"
+    }
+  },
+  "Metadata": {
+    "AWS::CloudFormation::Interface": {
+      "ParameterGroups": [
+        {
+          "Label": {
+            "default": "Required"
+          },
+          "Parameters": [
+            "amiIds"
+          ]
+        },
+        {
+          "Label": {
+            "default": "Optional"
+          },
+          "Parameters": []
+        }
+      ]
+    }
+  },
+  "Conditions": {
+    "amiIds": {
+      "Fn::Not": [
+        {
+          "Fn::Equals": [
+            "",
+            {
+              "Ref": "amiIds"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
