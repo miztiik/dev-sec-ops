@@ -1,0 +1,173 @@
+{
+    "Parameters": {
+      "ConfigRuleName": {
+        "Type": "String",
+        "Default": "approved-amis-by-tag",
+        "Description": "The name that you assign to the AWS Config rule.",
+        "MinLength": "1",
+        "ConstraintDescription": "This parameter is required."
+      },
+      "amisByTagKeyAndValue": {
+        "Type": "String",
+        "Default": "devSecOpsApproved:true",
+        "Description": "Specify AMIs by tag (comma separated list up to 10; for example, 'tag-key:tag-value').",
+        "MinLength": "1",
+        "ConstraintDescription": "This parameter is required."
+      }
+    },
+    "Conditions": {
+      "amisByTagKeyAndValue": {
+        "Fn::Not": [
+          {
+            "Fn::Equals": [
+              "",
+              {
+                "Ref": "amisByTagKeyAndValue"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "Resources": {
+      "AWSConfigRule": {
+        "Type": "AWS::Config::ConfigRule",
+        "Properties": {
+          "ConfigRuleName": {
+            "Ref": "ConfigRuleName"
+          },
+          "Description": "Checks whether running instances are using specified AMIs.",
+          "InputParameters": {
+            "amisByTagKeyAndValue": {
+              "Fn::If": [
+                "amisByTagKeyAndValue",
+                {
+                  "Ref": "amisByTagKeyAndValue"
+                },
+                {
+                  "Ref": "AWS::NoValue"
+                }
+              ]
+            }
+          },
+          "Scope": {
+            "ComplianceResourceTypes": [
+              "AWS::EC2::Instance"
+            ]
+          },
+          "Source": {
+            "Owner": "AWS",
+            "SourceIdentifier": "APPROVED_AMIS_BY_TAG"
+          }
+        }
+      },
+      "RemediationForConfigRuleUlEEiIuGIM": {
+        "Type": "AWS::Config::RemediationConfiguration",
+        "Properties": {
+          "Automatic": true,
+          "ConfigRuleName": {
+            "Ref": "AWSConfigRule"
+          },
+          "MaximumAutomaticAttempts": 5,
+          "RetryAttemptSeconds": 60,
+          "TargetId": "AWS-StopEC2Instance",
+          "TargetType": "SSM_DOCUMENT",
+          "TargetVersion": "1",
+          "Parameters": {
+            "AutomationAssumeRole": {
+              "StaticValue": {
+                "Values": [
+                  {
+                    "Fn::GetAtt": [
+                      "AutoRemediationIamRoleIuGIM",
+                      "Arn"
+                    ]
+                  }
+                ]
+              }
+            },
+            "InstanceId": {
+              "ResourceValue": {
+                "Value": "RESOURCE_ID"
+              }
+            }
+          }
+        }
+      },
+      "AutoRemediationIamRoleIuGIM": {
+        "Type": "AWS::IAM::Role",
+        "Properties": {
+          "AssumeRolePolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Principal": {
+                  "Service": [
+                    "ec2.amazonaws.com",
+                    "events.amazonaws.com",
+                    "ssm.amazonaws.com"
+                  ]
+                },
+                "Action": [
+                  "sts:AssumeRole"
+                ]
+              }
+            ]
+          },
+          "ManagedPolicyArns": [
+            "arn:aws:iam::aws:policy/service-role/AmazonSSMAutomationRole"
+          ],
+          "Policies": []
+        }
+      },
+      "AutomationPassRolePolicyIuGIM": {
+        "Type": "AWS::IAM::Policy",
+        "Properties": {
+          "PolicyName": "passAutomationRole",
+          "PolicyDocument": {
+            "Version": "2012-10-17",
+            "Statement": [
+              {
+                "Effect": "Allow",
+                "Action": [
+                  "iam:PassRole"
+                ],
+                "Resource": {
+                  "Fn::GetAtt": [
+                    "AutoRemediationIamRoleIuGIM",
+                    "Arn"
+                  ]
+                }
+              }
+            ]
+          },
+          "Roles": [
+            {
+              "Ref": "AutoRemediationIamRoleIuGIM"
+            }
+          ]
+        }
+      }
+    },
+    "Metadata": {
+      "AWS::CloudFormation::Interface": {
+        "ParameterGroups": [
+          {
+            "Label": {
+              "default": "Required"
+            },
+            "Parameters": [
+              "amisByTagKeyAndValue"
+            ]
+          },
+          {
+            "Label": {
+              "default": "Optional"
+            },
+            "Parameters": []
+          }
+        ]
+      }
+    }
+  }
