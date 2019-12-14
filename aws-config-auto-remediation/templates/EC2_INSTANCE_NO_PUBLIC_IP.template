@@ -1,0 +1,140 @@
+{
+  "Description": "Miztiik Stack to Auto remediation configuration to stop or terminate EC2 instances with public IP addresses. Detection uses a managed AWS Config Rule and remediation is with SSM Automation.",
+  "Resources": {
+    "RemediationForConfigRule": {
+      "Type": "AWS::Config::RemediationConfiguration",
+      "Properties": {
+        "Automatic": true,
+        "ConfigRuleName": {
+          "Ref": "AWSConfigRule"
+        },
+        "MaximumAutomaticAttempts": 5,
+        "RetryAttemptSeconds": 60,
+        "TargetId": "AWS-StopEC2Instance",
+        "TargetType": "SSM_DOCUMENT",
+        "TargetVersion": "1",
+        "Parameters": {
+          "AutomationAssumeRole": {
+            "StaticValue": {
+              "Values": [
+                {
+                  "Fn::GetAtt": [
+                    "AutoRemediationIamRole",
+                    "Arn"
+                  ]
+                }
+              ]
+            }
+          },
+          "InstanceId": {
+            "ResourceValue": {
+              "Value": "RESOURCE_ID"
+            }
+          }
+        }
+      }
+    },
+    "AutoRemediationIamRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": [
+                  "ec2.amazonaws.com",
+                  "events.amazonaws.com",
+                  "ssm.amazonaws.com"
+                ]
+              },
+              "Action": [
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/service-role/AmazonSSMAutomationRole"
+        ],
+        "Policies": []
+      }
+    },
+    "AutomationPassRolePolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "PolicyName": "passAutomationRole",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "iam:PassRole"
+              ],
+              "Resource": {
+                "Fn::GetAtt": [
+                  "AutoRemediationIamRole",
+                  "Arn"
+                ]
+              }
+            }
+          ]
+        },
+        "Roles": [
+          {
+            "Ref": "AutoRemediationIamRole"
+          }
+        ]
+      }
+    },
+    "AWSConfigRule": {
+      "Type": "AWS::Config::ConfigRule",
+      "Properties": {
+        "ConfigRuleName": {
+          "Ref": "ConfigRuleName"
+        },
+        "Description": "Checks whether Amazon Elastic Compute Cloud (Amazon EC2) instances have a public IP association. The rule is NON_COMPLIANT if the publicIp field is present in the Amazon EC2 instance configuration item. This rule applies only to IPv4.",
+        "InputParameters": {},
+        "Scope": {
+          "ComplianceResourceTypes": [
+            "AWS::EC2::Instance"
+          ]
+        },
+        "Source": {
+          "Owner": "AWS",
+          "SourceIdentifier": "EC2_INSTANCE_NO_PUBLIC_IP"
+        }
+      }
+    }
+  },
+  "Parameters": {
+    "ConfigRuleName": {
+      "Type": "String",
+      "Default": "ec2-instance-no-public-ip",
+      "Description": "The name that you assign to the AWS Config rule.",
+      "MinLength": "1",
+      "ConstraintDescription": "This parameter is required."
+    }
+  },
+  "Metadata": {
+    "AWS::CloudFormation::Interface": {
+      "ParameterGroups": [
+        {
+          "Label": {
+            "default": "Required"
+          },
+          "Parameters": []
+        },
+        {
+          "Label": {
+            "default": "Optional"
+          },
+          "Parameters": []
+        }
+      ]
+    }
+  },
+  "Conditions": {}
+}
