@@ -18,7 +18,7 @@
         --capabilities CAPABILITY_IAM
   ```
 
-#### Testing the solution
+### Testing the solution
 
 1. Ensure `GuardDuty` and `SecurityHub` for your account
 1. Subscribe to the SNS
