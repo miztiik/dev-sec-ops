@@ -2,7 +2,7 @@
 
 Attribute-based access control (ABAC) is an authorization strategy that defines permissions based on attributes. In AWS, these attributes are called tags. ABAC allows you the same fine grained access control model like "Role Based Access Control-RBAC", in addition to that you can easily scale your permissions to any number of resources, identities. _[Read More](https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction_attribute-based-access-control.html)_
 
-![Attribute-based access control](images/s3-abac-concept_01.png)
+![Attribute-based access control](images/s3-abac-redfined.png)
 
 Follow this article in **[Youtube](https://www.youtube.com/c/ValaxyTechnologies)**
 
