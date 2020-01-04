@@ -2,14 +2,16 @@
 
 Attribute-based access control (ABAC) is an authorization strategy that defines permissions based on attributes. In AWS, these attributes are called tags. ABAC allows you the same fine grained access control model like "Role Based Access Control-RBAC", in addition to that you can easily scale your permissions to any number of resources, identities. _[Read More](https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction_attribute-based-access-control.html)_
 
-![Attribute-based access control](images/s3-abac-concept.png)
+![Attribute-based access control](images/s3-abac-concept_01.png)
 
 Follow this article in **[Youtube](https://www.youtube.com/c/ValaxyTechnologies)**
 
-Our customer has a bucket with many objects accessed by multiple people. There no prefixes and all objects are in the same directory(root) of the bucket. Access to the objects depend on the team the users are member of. If we have two teams, `teamRed` and `teamBlue`, It becomes very very difficult without re-structing the bucket to restrict object level access. Using ABAC, we can implement a _IAM_ policy that allows users access to objects that are specficially tagged for their teams.
+Our customer has a bucket with many objects accessed by multiple people. There no prefixes and all objects are in the same directory(root) of the bucket. Access to the objects depend on the team the users are member of. 
 
-- `teamRed` should be allowed access to objects tagged `teamName=teamRed` only and nothing else.
-- `teamBlue` should be allowed access to objects tagged `teamName=teamBlue` only and nothing else.
+Lets imagine `teamUnicorn` working on two awesome projects, `projectRed` and `projectBlue`, It becomes very very difficult without re-structing the bucket to restrict object level access. Using ABAC, we can implement a _IAM_ policy that allows users access to objects that are specficially tagged for their teams.
+
+- `projectRed` should be allowed access to objects tagged `projectName=projectRed` only and nothing else.
+- `projectBlue` should be allowed access to objects tagged `projectName=projectBlue` only and nothing else.
 
 ### 
 
@@ -50,9 +52,9 @@ Our customer has a bucket with many objects accessed by multiple people. There n
 ```
 
 ```sh
-aws s3api put-object-tagging --bucket tag-based-object-access-010 --key a --tagging 'TagSet=[{Key=teamName,Value=teamBlue}]'
+aws s3api put-object-tagging --bucket YOUR-BUCKET-NAME --key SAMPLE-OBJECT-NAME --tagging 'TagSet=[{Key=teamName,Value=teamBlue}]'
 
-aws s3api put-object --bucket tag-based-object-access-010 --key pkon --tagging 'Key=teamName&Value=teamBlue'
+aws s3api put-object --bucket YOUR-BUCKET-NAME --key SAMPLE-OBJECT-NAME --tagging 'Key=teamName&Value=teamBlue'
 ```
 
 ### Buy me a coffee
