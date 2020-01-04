@@ -52,7 +52,7 @@ class S3RestrictObjectAccessBasedOnTagsAbacStack(core.Stack):
         redRosy = iam.User(
             self,
             "redRosy",
-            user_name="redUser",
+            user_name="redRosy",
             password=core.SecretValue.plain_text(redRosy_new_pass.response)
         )
 
@@ -65,7 +65,7 @@ class S3RestrictObjectAccessBasedOnTagsAbacStack(core.Stack):
         blueBob = iam.User(
             self,
             "blueBob",
-            user_name="blueUser",
+            user_name="blueBob",
             password=core.SecretValue.plain_text(blueBob_new_pass.response)
         )
 
@@ -78,20 +78,20 @@ class S3RestrictObjectAccessBasedOnTagsAbacStack(core.Stack):
         annoyingAdmin = iam.User(
             self,
             "annoyingAdmin",
-            user_name="adminUser",
+            user_name="annoyingAdmin",
             password=core.SecretValue.plain_text(annoyingAdmin_new_pass.response)
         )
 
-        unicornGrp = iam.Group(
+        teamUnicornGrp = iam.Group(
             self,
-            "unicornGrp",
-            group_name="unicornGroup"
+            "teamUnicorn",
+            group_name="teamUnicorn"
         )
 
         # Add Users To Group
-        unicornGrp.add_user(redRosy)
-        unicornGrp.add_user(blueBob)
-        unicornGrp.add_user(annoyingAdmin)
+        teamUnicornGrp.add_user(redRosy)
+        teamUnicornGrp.add_user(blueBob)
+        teamUnicornGrp.add_user(annoyingAdmin)
 
         # blueGrp1.add_managed_policy(iam.ManagedPolicy.from_aws_managed_policy_name("AmazonS3ReadOnlyAccess"))
         ##############################################
@@ -139,37 +139,37 @@ class S3RestrictObjectAccessBasedOnTagsAbacStack(core.Stack):
         # Lets Create the IAM Role
         # Uses belonging to this group, will be able to asume this role
         accountId=core.Aws.ACCOUNT_ID
-        unicornTeamProjectRedRole = iam.Role(
+        teamUnicornProjectRedRole = iam.Role(
             self,
-            'unicornTeamProjectRedRoleId',
+            'teamUnicornProjectRedRoleId',
             assumed_by=iam.AccountPrincipal(f"{accountId}"),
-            role_name="unicornTeamProjectRedRole"
+            role_name="teamUnicornProjectRedRole"
         )
-        core.Tag.add(unicornTeamProjectRedRole, key="teamName",value="teamUnicorn")
-        core.Tag.add(unicornTeamProjectRedRole, key="projectName",value="projectRed")
+        core.Tag.add(teamUnicornProjectRedRole, key="teamName",value="teamUnicorn")
+        core.Tag.add(teamUnicornProjectRedRole, key="projectName",value="projectRed")
 
-        unicornTeamProjectBlueRole = iam.Role(
+        teamUnicornProjectBlueRole = iam.Role(
             self,
-            'unicornTeamProjectBlueRoleId',
+            'teamUnicornProjectBlueRoleId',
             assumed_by=iam.AccountPrincipal(f"{accountId}"),
-            role_name="unicornTeamProjectBlueRole"
+            role_name="teamUnicornProjectBlueRole"
         )
-        core.Tag.add(unicornTeamProjectBlueRole, key="teamName",value="teamUnicorn")
-        core.Tag.add(unicornTeamProjectBlueRole, key="projectName",value="projectBlue")
+        core.Tag.add(teamUnicornProjectBlueRole, key="teamName",value="teamUnicorn")
+        core.Tag.add(teamUnicornProjectBlueRole, key="projectName",value="projectBlue")
 
-        unicornTeamTeamAdminRole = iam.Role(
+        teamUnicornTeamAdminRole = iam.Role(
             self,
-            'unicornTeamTeamAdminRoleId',
+            'teamUnicornTeamAdminRoleId',
             assumed_by=iam.AccountPrincipal(f"{accountId}"),
-            role_name="unicornTeamTeamAdminRole"
+            role_name="teamUnicornTeamAdminRole"
         )
-        core.Tag.add(unicornTeamTeamAdminRole, key="teamName",value="teamUnicorn")
-        core.Tag.add(unicornTeamTeamAdminRole, key="teamAdmin",value="yes")
+        core.Tag.add(teamUnicornTeamAdminRole, key="teamName",value="teamUnicorn")
+        core.Tag.add(teamUnicornTeamAdminRole, key="teamAdmin",value="yes")
 
         # Allow Group to Assume Role
         grpStmt1=iam.PolicyStatement(
                 effect=iam.Effect.ALLOW,
-                resources=[f"arn:aws:iam::{accountId}:role/unicornTeamProject*"],
+                resources=[f"arn:aws:iam::{accountId}:role/teamUnicornProject*"],
                 actions=["sts:AssumeRole"],
                 conditions={ "StringEquals": { "iam:ResourceTag/teamName": "${aws:PrincipalTag/teamName}",
                                                "iam:ResourceTag/projectName": "${aws:PrincipalTag/projectName}" 
@@ -180,7 +180,7 @@ class S3RestrictObjectAccessBasedOnTagsAbacStack(core.Stack):
 
         grpStmt2=iam.PolicyStatement(
                 effect=iam.Effect.ALLOW,
-                resources=[f"arn:aws:iam::{accountId}:role/unicornTeamTeamAdminRole"],
+                resources=[f"arn:aws:iam::{accountId}:role/teamUnicornTeamAdminRole"],
                 actions=["sts:AssumeRole"],
                 conditions={ "StringEquals": { "iam:ResourceTag/teamName": "${aws:PrincipalTag/teamName}",
                                                "iam:ResourceTag/teamAdmin": "yes"
@@ -188,8 +188,8 @@ class S3RestrictObjectAccessBasedOnTagsAbacStack(core.Stack):
                         }
             )
         grpStmt2.sid="AllowTeamAdminToAssumeRoleMatchingTeamName"
-        unicornGrp.add_to_policy( grpStmt1 )
-        unicornGrp.add_to_policy( grpStmt2 )
+        teamUnicornGrp.add_to_policy( grpStmt1 )
+        teamUnicornGrp.add_to_policy( grpStmt2 )
 
         # Add Permissions to the Role
         roleStmt1=iam.PolicyStatement(
@@ -242,25 +242,25 @@ class S3RestrictObjectAccessBasedOnTagsAbacStack(core.Stack):
             )
         roleStmt5.sid="FullAccessToAdminsFromSameTeam"
 
-        unicornTeamProjectRedRole.add_to_policy( roleStmt1 )
-        unicornTeamProjectRedRole.add_to_policy( roleStmt2 )
-        unicornTeamProjectRedRole.add_to_policy( roleStmt3 )
-        unicornTeamProjectRedRole.add_to_policy( roleStmt4 )
-        unicornTeamProjectRedRole.add_to_policy( roleStmt5 )
+        teamUnicornProjectRedRole.add_to_policy( roleStmt1 )
+        teamUnicornProjectRedRole.add_to_policy( roleStmt2 )
+        teamUnicornProjectRedRole.add_to_policy( roleStmt3 )
+        teamUnicornProjectRedRole.add_to_policy( roleStmt4 )
+        teamUnicornProjectRedRole.add_to_policy( roleStmt5 )
 
         # Add same permissions to projectBlueRole
-        unicornTeamProjectBlueRole.add_to_policy( roleStmt1 )
-        unicornTeamProjectBlueRole.add_to_policy( roleStmt2 )
-        unicornTeamProjectBlueRole.add_to_policy( roleStmt3 )
-        unicornTeamProjectBlueRole.add_to_policy( roleStmt4 )
-        unicornTeamProjectBlueRole.add_to_policy( roleStmt5 )
+        teamUnicornProjectBlueRole.add_to_policy( roleStmt1 )
+        teamUnicornProjectBlueRole.add_to_policy( roleStmt2 )
+        teamUnicornProjectBlueRole.add_to_policy( roleStmt3 )
+        teamUnicornProjectBlueRole.add_to_policy( roleStmt4 )
+        teamUnicornProjectBlueRole.add_to_policy( roleStmt5 )
 
         # Add same permissions to teamAdminRole
-        unicornTeamTeamAdminRole.add_to_policy( roleStmt1 )
-        unicornTeamTeamAdminRole.add_to_policy( roleStmt2 )
-        unicornTeamTeamAdminRole.add_to_policy( roleStmt3 )
-        unicornTeamTeamAdminRole.add_to_policy( roleStmt4 )
-        unicornTeamTeamAdminRole.add_to_policy( roleStmt5 )
+        teamUnicornTeamAdminRole.add_to_policy( roleStmt1 )
+        teamUnicornTeamAdminRole.add_to_policy( roleStmt2 )
+        teamUnicornTeamAdminRole.add_to_policy( roleStmt3 )
+        teamUnicornTeamAdminRole.add_to_policy( roleStmt4 )
+        teamUnicornTeamAdminRole.add_to_policy( roleStmt5 )
 
 
         ###########################################
@@ -274,17 +274,17 @@ class S3RestrictObjectAccessBasedOnTagsAbacStack(core.Stack):
         )
 
         output1_r = core.CfnOutput(self,
-            "redRosyPassword",
+            "User:redRosy",
             value=redRosy_new_pass.response,
             description=f"Red Rosy User Password"
         )
         output1_b = core.CfnOutput(self,
-            "blueBobPassword",
+            "User:blueBob",
             value=blueBob_new_pass.response,
             description=f"Red Rosy User Password"
         )
         output1_a = core.CfnOutput(self,
-            "annoyingAdminPassword",
+            "User:annoyingAdmin",
             value=annoyingAdmin_new_pass.response,
             description=f"Red Rosy User Password"
         )
@@ -302,7 +302,7 @@ class S3RestrictObjectAccessBasedOnTagsAbacStack(core.Stack):
             "Rosy-Assume-RedRole-Url",
             value=(
                     f"https://signin.aws.amazon.com/switchrole?roleName="
-                    f"{unicornTeamProjectRedRole.role_name}"
+                    f"{teamUnicornProjectRedRole.role_name}"
                     f"&account="
                     f"{core.Aws.ACCOUNT_ID}"
                 ),
@@ -314,7 +314,7 @@ class S3RestrictObjectAccessBasedOnTagsAbacStack(core.Stack):
             "blueBob-Assume-RedRole-Url",
             value=(
                     f"https://signin.aws.amazon.com/switchrole?roleName="
-                    f"{unicornTeamProjectBlueRole.role_name}"
+                    f"{teamUnicornProjectBlueRole.role_name}"
                     f"&account="
                     f"{core.Aws.ACCOUNT_ID}"
                 ),

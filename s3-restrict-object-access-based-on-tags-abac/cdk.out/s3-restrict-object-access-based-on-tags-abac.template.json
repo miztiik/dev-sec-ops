@@ -189,7 +189,7 @@
       "Properties": {
         "Groups": [
           {
-            "Ref": "unicornGrp67527D6D"
+            "Ref": "teamUnicorn7A4EE641"
           }
         ],
         "LoginProfile": {
@@ -200,7 +200,7 @@
             ]
           }
         },
-        "UserName": "redUser"
+        "UserName": "redRosy"
       },
       "Metadata": {
         "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/redRosy/Resource"
@@ -228,7 +228,7 @@
       "Properties": {
         "Groups": [
           {
-            "Ref": "unicornGrp67527D6D"
+            "Ref": "teamUnicorn7A4EE641"
           }
         ],
         "LoginProfile": {
@@ -239,7 +239,7 @@
             ]
           }
         },
-        "UserName": "blueUser"
+        "UserName": "blueBob"
       },
       "Metadata": {
         "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/blueBob/Resource"
@@ -267,7 +267,7 @@
       "Properties": {
         "Groups": [
           {
-            "Ref": "unicornGrp67527D6D"
+            "Ref": "teamUnicorn7A4EE641"
           }
         ],
         "LoginProfile": {
@@ -278,22 +278,22 @@
             ]
           }
         },
-        "UserName": "adminUser"
+        "UserName": "annoyingAdmin"
       },
       "Metadata": {
         "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/annoyingAdmin/Resource"
       }
     },
-    "unicornGrp67527D6D": {
+    "teamUnicorn7A4EE641": {
       "Type": "AWS::IAM::Group",
       "Properties": {
-        "GroupName": "unicornGroup"
+        "GroupName": "teamUnicorn"
       },
       "Metadata": {
-        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/unicornGrp/Resource"
+        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/teamUnicorn/Resource"
       }
     },
-    "unicornGrpDefaultPolicy5DA0FC7F": {
+    "teamUnicornDefaultPolicy7E297529": {
       "Type": "AWS::IAM::Policy",
       "Properties": {
         "PolicyDocument": {
@@ -315,7 +315,7 @@
                     {
                       "Ref": "AWS::AccountId"
                     },
-                    ":role/unicornTeamProject*"
+                    ":role/teamUnicornProject*"
                   ]
                 ]
               },
@@ -338,7 +338,7 @@
                     {
                       "Ref": "AWS::AccountId"
                     },
-                    ":role/unicornTeamTeamAdminRole"
+                    ":role/teamUnicornTeamAdminRole"
                   ]
                 ]
               },
@@ -347,15 +347,15 @@
           ],
           "Version": "2012-10-17"
         },
-        "PolicyName": "unicornGrpDefaultPolicy5DA0FC7F",
+        "PolicyName": "teamUnicornDefaultPolicy7E297529",
         "Groups": [
           {
-            "Ref": "unicornGrp67527D6D"
+            "Ref": "teamUnicorn7A4EE641"
           }
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/unicornGrp/DefaultPolicy/Resource"
+        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/teamUnicorn/DefaultPolicy/Resource"
       }
     },
     "iamTagger9FA1A227": {
@@ -534,7 +534,7 @@
         "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/SingletonLambdatagger304ee111e89c2dfa7ae01bbebc/Resource"
       }
     },
-    "unicornTeamProjectRedRoleIdC9939132": {
+    "teamUnicornProjectRedRoleIdDD950183": {
       "Type": "AWS::IAM::Role",
       "Properties": {
         "AssumeRolePolicyDocument": {
@@ -564,7 +564,7 @@
           ],
           "Version": "2012-10-17"
         },
-        "RoleName": "unicornTeamProjectRedRole",
+        "RoleName": "teamUnicornProjectRedRole",
         "Tags": [
           {
             "Key": "Owner",
@@ -589,10 +589,10 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/unicornTeamProjectRedRoleId/Resource"
+        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/teamUnicornProjectRedRoleId/Resource"
       }
     },
-    "unicornTeamProjectRedRoleIdDefaultPolicy3BBF0C7C": {
+    "teamUnicornProjectRedRoleIdDefaultPolicyD37AA14A": {
       "Type": "AWS::IAM::Policy",
       "Properties": {
         "PolicyDocument": {
@@ -714,18 +714,18 @@
           ],
           "Version": "2012-10-17"
         },
-        "PolicyName": "unicornTeamProjectRedRoleIdDefaultPolicy3BBF0C7C",
+        "PolicyName": "teamUnicornProjectRedRoleIdDefaultPolicyD37AA14A",
         "Roles": [
           {
-            "Ref": "unicornTeamProjectRedRoleIdC9939132"
+            "Ref": "teamUnicornProjectRedRoleIdDD950183"
           }
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/unicornTeamProjectRedRoleId/DefaultPolicy/Resource"
+        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/teamUnicornProjectRedRoleId/DefaultPolicy/Resource"
       }
     },
-    "unicornTeamProjectBlueRoleIdC5C4F56C": {
+    "teamUnicornProjectBlueRoleId9A53C68A": {
       "Type": "AWS::IAM::Role",
       "Properties": {
         "AssumeRolePolicyDocument": {
@@ -755,7 +755,7 @@
           ],
           "Version": "2012-10-17"
         },
-        "RoleName": "unicornTeamProjectBlueRole",
+        "RoleName": "teamUnicornProjectBlueRole",
         "Tags": [
           {
             "Key": "Owner",
@@ -780,10 +780,10 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/unicornTeamProjectBlueRoleId/Resource"
+        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/teamUnicornProjectBlueRoleId/Resource"
       }
     },
-    "unicornTeamProjectBlueRoleIdDefaultPolicyBEE337A2": {
+    "teamUnicornProjectBlueRoleIdDefaultPolicy65AAC2CA": {
       "Type": "AWS::IAM::Policy",
       "Properties": {
         "PolicyDocument": {
@@ -905,18 +905,18 @@
           ],
           "Version": "2012-10-17"
         },
-        "PolicyName": "unicornTeamProjectBlueRoleIdDefaultPolicyBEE337A2",
+        "PolicyName": "teamUnicornProjectBlueRoleIdDefaultPolicy65AAC2CA",
         "Roles": [
           {
-            "Ref": "unicornTeamProjectBlueRoleIdC5C4F56C"
+            "Ref": "teamUnicornProjectBlueRoleId9A53C68A"
           }
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/unicornTeamProjectBlueRoleId/DefaultPolicy/Resource"
+        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/teamUnicornProjectBlueRoleId/DefaultPolicy/Resource"
       }
     },
-    "unicornTeamTeamAdminRoleIdA0EC24C2": {
+    "teamUnicornTeamAdminRoleId92591294": {
       "Type": "AWS::IAM::Role",
       "Properties": {
         "AssumeRolePolicyDocument": {
@@ -946,7 +946,7 @@
           ],
           "Version": "2012-10-17"
         },
-        "RoleName": "unicornTeamTeamAdminRole",
+        "RoleName": "teamUnicornTeamAdminRole",
         "Tags": [
           {
             "Key": "Owner",
@@ -971,10 +971,10 @@
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/unicornTeamTeamAdminRoleId/Resource"
+        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/teamUnicornTeamAdminRoleId/Resource"
       }
     },
-    "unicornTeamTeamAdminRoleIdDefaultPolicy0E2DD59E": {
+    "teamUnicornTeamAdminRoleIdDefaultPolicyB0F4D63C": {
       "Type": "AWS::IAM::Policy",
       "Properties": {
         "PolicyDocument": {
@@ -1096,15 +1096,15 @@
           ],
           "Version": "2012-10-17"
         },
-        "PolicyName": "unicornTeamTeamAdminRoleIdDefaultPolicy0E2DD59E",
+        "PolicyName": "teamUnicornTeamAdminRoleIdDefaultPolicyB0F4D63C",
         "Roles": [
           {
-            "Ref": "unicornTeamTeamAdminRoleIdA0EC24C2"
+            "Ref": "teamUnicornTeamAdminRoleId92591294"
           }
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/unicornTeamTeamAdminRoleId/DefaultPolicy/Resource"
+        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/teamUnicornTeamAdminRoleId/DefaultPolicy/Resource"
       }
     }
   },
@@ -1113,7 +1113,7 @@
       "Description": "To know more about this automation stack, check out our github page.",
       "Value": "https://github.com/miztiik/dev-sec-ops/tree/master/s3-restrict-object-access-based-on-tags-abac"
     },
-    "redRosyPassword": {
+    "UserredRosy": {
       "Description": "Red Rosy User Password",
       "Value": {
         "Fn::GetAtt": [
@@ -1122,7 +1122,7 @@
         ]
       }
     },
-    "blueBobPassword": {
+    "UserblueBob": {
       "Description": "Red Rosy User Password",
       "Value": {
         "Fn::GetAtt": [
@@ -1131,7 +1131,7 @@
         ]
       }
     },
-    "annoyingAdminPassword": {
+    "UserannoyingAdmin": {
       "Description": "Red Rosy User Password",
       "Value": {
         "Fn::GetAtt": [
@@ -1162,7 +1162,7 @@
           [
             "https://signin.aws.amazon.com/switchrole?roleName=",
             {
-              "Ref": "unicornTeamProjectRedRoleIdC9939132"
+              "Ref": "teamUnicornProjectRedRoleIdDD950183"
             },
             "&account=",
             {
@@ -1180,7 +1180,7 @@
           [
             "https://signin.aws.amazon.com/switchrole?roleName=",
             {
-              "Ref": "unicornTeamProjectBlueRoleIdC5C4F56C"
+              "Ref": "teamUnicornProjectBlueRoleId9A53C68A"
             },
             "&account=",
             {
