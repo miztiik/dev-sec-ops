@@ -1,0 +1,14 @@
+{
+  "app": "python3 app.py",
+  "context": {
+    "owner": "Mystique",
+    "github_profile": "https://github.com/miztiik",
+    "youtube_profile": "https://youtube.com/c/valaxytechnologies",
+    "service_name": "s3_restrict_object_access_based_on_tags_abac_stack",
+    "env": {
+      "production": {
+        "env_name": "production"
+      }
+    }
+  }
+}
