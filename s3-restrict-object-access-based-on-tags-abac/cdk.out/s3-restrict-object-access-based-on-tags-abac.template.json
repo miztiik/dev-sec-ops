@@ -6,6 +6,20 @@
         "PublicAccessBlockConfiguration": {
           "BlockPublicPolicy": true
         },
+        "Tags": [
+          {
+            "Key": "Owner",
+            "Value": "Mystique"
+          },
+          {
+            "Key": "OwnerProfile",
+            "Value": "https://github.com/miztiik"
+          },
+          {
+            "Key": "ToKnowMore",
+            "Value": "https://youtube.com/c/valaxytechnologies"
+          }
+        ],
         "VersioningConfiguration": {
           "Status": "Enabled"
         }
@@ -68,7 +82,109 @@
         "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/abacBucket/Policy/Resource"
       }
     },
-    "redUser117E49C29": {
+    "redRosyNewPasswordGeneratorCF32457D": {
+      "Type": "AWS::CloudFormation::CustomResource",
+      "Properties": {
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "SingletonLambdaRANDOMF2F7DB4561B7AC4C9730D10E95FD065624",
+            "Arn"
+          ]
+        },
+        "Length": 20
+      },
+      "UpdateReplacePolicy": "Delete",
+      "DeletionPolicy": "Delete",
+      "Metadata": {
+        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/redRosyNewPasswordGenerator/Resource/Default"
+      }
+    },
+    "SingletonLambdaRANDOMF2F7DB4561B7AC4C9730D10E95ServiceRole28C8B767": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com"
+              }
+            }
+          ],
+          "Version": "2012-10-17"
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition"
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+              ]
+            ]
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Owner",
+            "Value": "Mystique"
+          },
+          {
+            "Key": "OwnerProfile",
+            "Value": "https://github.com/miztiik"
+          },
+          {
+            "Key": "ToKnowMore",
+            "Value": "https://youtube.com/c/valaxytechnologies"
+          }
+        ]
+      },
+      "Metadata": {
+        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/SingletonLambdaRANDOMF2F7DB4561B7AC4C9730D10E95/ServiceRole/Resource"
+      }
+    },
+    "SingletonLambdaRANDOMF2F7DB4561B7AC4C9730D10E95FD065624": {
+      "Type": "AWS::Lambda::Function",
+      "Properties": {
+        "Code": {
+          "ZipFile": "import boto3\nimport random\nimport string\nimport logging as log\nimport cfnresponse\n\nlog.getLogger().setLevel(log.INFO)\n\n\"\"\"\nIf included in a Cloudformation build as a CustomResource, \ngenerate a random string of length given by the 'length' parameter. Defaults to 20\nBy default the character set used is upper and lowercase ascii letters plus digits.\n\"\"\"\n\ndef lambda_handler(event, context):\n\n    log.info(f\"Input event: {event}\")\n    length = 20\n    punctuation = False\n    rds_compatible = False\n\n    physical_id = \"random_string_generator\"\n\n    attributes = {\n            \"random_string\": \"\",\n            \"message\":\"\"\n        }\n\n    try:\n        # Check if this is a Create and we're failing Creates\n        if event['RequestType'] == 'Create' and event['ResourceProperties'].get('FailCreate', False):\n            raise RuntimeError('Create failure requested')\n\n        length = int(event['ResourceProperties'].get('Length', 20))\n        punctuation = event['ResourceProperties'].get('Punctuation',False)\n        rds_compatible = event['ResourceProperties'].get('RDSCompatible',False)\n\n        valid_characters = string.ascii_letters+string.digits\n\n        if punctuation not in [False,'false','False']:\n            valid_characters = valid_characters + string.punctuation\n        if rds_compatible not in [False,'false','False']:\n            valid_characters = valid_characters.translate(None,'@/\"')\n\n        random_string = ''.join(random.choice(valid_characters) for i in range(length))\n        attributes[\"random_string\"] = random_string\n        attributes[\"message\"]= \"Successfully generated a random string\"\n\n        attributes = {\n            'Response': f\"{random_string}\"\n        }\n        cfnresponse.send(event, context, cfnresponse.SUCCESS, attributes, physical_id)\n    except Exception as e:\n        log.exception(e)\n        # cfnresponse's error message is always \"see CloudWatch\"\n        cfnresponse.send(event, context, cfnresponse.FAILED, {}, physical_id)"
+        },
+        "Handler": "index.lambda_handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "SingletonLambdaRANDOMF2F7DB4561B7AC4C9730D10E95ServiceRole28C8B767",
+            "Arn"
+          ]
+        },
+        "Runtime": "python3.7",
+        "Tags": [
+          {
+            "Key": "Owner",
+            "Value": "Mystique"
+          },
+          {
+            "Key": "OwnerProfile",
+            "Value": "https://github.com/miztiik"
+          },
+          {
+            "Key": "ToKnowMore",
+            "Value": "https://youtube.com/c/valaxytechnologies"
+          }
+        ],
+        "Timeout": 300
+      },
+      "DependsOn": [
+        "SingletonLambdaRANDOMF2F7DB4561B7AC4C9730D10E95ServiceRole28C8B767"
+      ],
+      "Metadata": {
+        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/SingletonLambdaRANDOMF2F7DB4561B7AC4C9730D10E95/Resource"
+      }
+    },
+    "redRosyD30E8CCC": {
       "Type": "AWS::IAM::User",
       "Properties": {
         "Groups": [
@@ -77,15 +193,37 @@
           }
         ],
         "LoginProfile": {
-          "Password": "redUser1SUPERDUMBpassWord"
+          "Password": {
+            "Fn::GetAtt": [
+              "redRosyNewPasswordGeneratorCF32457D",
+              "Response"
+            ]
+          }
         },
         "UserName": "redUser"
       },
       "Metadata": {
-        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/redUser1/Resource"
+        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/redRosy/Resource"
       }
     },
-    "blueUser1F9C03CD0": {
+    "blueBobNewPasswordGenerator4743B88E": {
+      "Type": "AWS::CloudFormation::CustomResource",
+      "Properties": {
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "SingletonLambdaRANDOMF2F7DB4561B7AC4C9730D10E95FD065624",
+            "Arn"
+          ]
+        },
+        "Length": 20
+      },
+      "UpdateReplacePolicy": "Delete",
+      "DeletionPolicy": "Delete",
+      "Metadata": {
+        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/blueBobNewPasswordGenerator/Resource/Default"
+      }
+    },
+    "blueBob3B5312E7": {
       "Type": "AWS::IAM::User",
       "Properties": {
         "Groups": [
@@ -94,15 +232,37 @@
           }
         ],
         "LoginProfile": {
-          "Password": "blueUser1SUPERDUMBpassWord"
+          "Password": {
+            "Fn::GetAtt": [
+              "blueBobNewPasswordGenerator4743B88E",
+              "Response"
+            ]
+          }
         },
         "UserName": "blueUser"
       },
       "Metadata": {
-        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/blueUser1/Resource"
+        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/blueBob/Resource"
       }
     },
-    "adminUser1ACCA3758": {
+    "annoyingAdminNewPasswordGenerator0BB97593": {
+      "Type": "AWS::CloudFormation::CustomResource",
+      "Properties": {
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "SingletonLambdaRANDOMF2F7DB4561B7AC4C9730D10E95FD065624",
+            "Arn"
+          ]
+        },
+        "Length": 20
+      },
+      "UpdateReplacePolicy": "Delete",
+      "DeletionPolicy": "Delete",
+      "Metadata": {
+        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/annoyingAdminNewPasswordGenerator/Resource/Default"
+      }
+    },
+    "annoyingAdminF29DD1CF": {
       "Type": "AWS::IAM::User",
       "Properties": {
         "Groups": [
@@ -111,12 +271,17 @@
           }
         ],
         "LoginProfile": {
-          "Password": "adminUser1SUPERDUMBpassWord"
+          "Password": {
+            "Fn::GetAtt": [
+              "annoyingAdminNewPasswordGenerator0BB97593",
+              "Response"
+            ]
+          }
         },
         "UserName": "adminUser"
       },
       "Metadata": {
-        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/adminUser1/Resource"
+        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/annoyingAdmin/Resource"
       }
     },
     "unicornGrp67527D6D": {
@@ -155,6 +320,29 @@
                 ]
               },
               "Sid": "AllowGroupMembersToAssumeRoleMatchingTeamName"
+            },
+            {
+              "Action": "sts:AssumeRole",
+              "Condition": {
+                "StringEquals": {
+                  "iam:ResourceTag/teamName": "${aws:PrincipalTag/teamName}",
+                  "iam:ResourceTag/teamAdmin": "yes"
+                }
+              },
+              "Effect": "Allow",
+              "Resource": {
+                "Fn::Join": [
+                  "",
+                  [
+                    "arn:aws:iam::",
+                    {
+                      "Ref": "AWS::AccountId"
+                    },
+                    ":role/unicornTeamTeamAdminRole"
+                  ]
+                ]
+              },
+              "Sid": "AllowTeamAdminToAssumeRoleMatchingTeamName"
             }
           ],
           "Version": "2012-10-17"
@@ -175,14 +363,14 @@
       "Properties": {
         "ServiceToken": {
           "Fn::GetAtt": [
-            "SingletonLambdaf7d4f7304ee111e89c2dfa7ae01bbebc492C6E5C",
+            "SingletonLambdatagger304ee111e89c2dfa7ae01bbebc3856A8DC",
             "Arn"
           ]
         },
         "Message": [
           {
             "user": {
-              "Ref": "redUser117E49C29"
+              "Ref": "redRosyD30E8CCC"
             },
             "tags": [
               {
@@ -197,7 +385,7 @@
           },
           {
             "user": {
-              "Ref": "blueUser1F9C03CD0"
+              "Ref": "blueBob3B5312E7"
             },
             "tags": [
               {
@@ -212,7 +400,7 @@
           },
           {
             "user": {
-              "Ref": "adminUser1ACCA3758"
+              "Ref": "annoyingAdminF29DD1CF"
             },
             "tags": [
               {
@@ -220,7 +408,7 @@
                 "Value": "teamUnicorn"
               },
               {
-                "Key": "projectAdmin",
+                "Key": "teamAdmin",
                 "Value": "yes"
               }
             ]
@@ -233,7 +421,7 @@
         "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/iamTagger/Resource/Default"
       }
     },
-    "SingletonLambdaf7d4f7304ee111e89c2dfa7ae01bbebcServiceRoleFE9ABB04": {
+    "SingletonLambdatagger304ee111e89c2dfa7ae01bbebcServiceRoleA954E0E8": {
       "Type": "AWS::IAM::Role",
       "Properties": {
         "AssumeRolePolicyDocument": {
@@ -261,13 +449,27 @@
               ]
             ]
           }
+        ],
+        "Tags": [
+          {
+            "Key": "Owner",
+            "Value": "Mystique"
+          },
+          {
+            "Key": "OwnerProfile",
+            "Value": "https://github.com/miztiik"
+          },
+          {
+            "Key": "ToKnowMore",
+            "Value": "https://youtube.com/c/valaxytechnologies"
+          }
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/SingletonLambdaf7d4f7304ee111e89c2dfa7ae01bbebc/ServiceRole/Resource"
+        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/SingletonLambdatagger304ee111e89c2dfa7ae01bbebc/ServiceRole/Resource"
       }
     },
-    "SingletonLambdaf7d4f7304ee111e89c2dfa7ae01bbebcServiceRoleDefaultPolicyEED0B067": {
+    "SingletonLambdatagger304ee111e89c2dfa7ae01bbebcServiceRoleDefaultPolicy8CD731AD": {
       "Type": "AWS::IAM::Policy",
       "Properties": {
         "PolicyDocument": {
@@ -283,39 +485,53 @@
           ],
           "Version": "2012-10-17"
         },
-        "PolicyName": "SingletonLambdaf7d4f7304ee111e89c2dfa7ae01bbebcServiceRoleDefaultPolicyEED0B067",
+        "PolicyName": "SingletonLambdatagger304ee111e89c2dfa7ae01bbebcServiceRoleDefaultPolicy8CD731AD",
         "Roles": [
           {
-            "Ref": "SingletonLambdaf7d4f7304ee111e89c2dfa7ae01bbebcServiceRoleFE9ABB04"
+            "Ref": "SingletonLambdatagger304ee111e89c2dfa7ae01bbebcServiceRoleA954E0E8"
           }
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/SingletonLambdaf7d4f7304ee111e89c2dfa7ae01bbebc/ServiceRole/DefaultPolicy/Resource"
+        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/SingletonLambdatagger304ee111e89c2dfa7ae01bbebc/ServiceRole/DefaultPolicy/Resource"
       }
     },
-    "SingletonLambdaf7d4f7304ee111e89c2dfa7ae01bbebc492C6E5C": {
+    "SingletonLambdatagger304ee111e89c2dfa7ae01bbebc3856A8DC": {
       "Type": "AWS::Lambda::Function",
       "Properties": {
         "Code": {
-          "ZipFile": "def main(event, context):\n    import logging as log\n    import cfnresponse\n    import boto3\n    log.getLogger().setLevel(log.INFO)\n\n    # This needs to change if there are to be multiple resources\n    # in the same stack\n    physical_id = 'TheOnlyCustomResource'\n\n    try:\n        log.info('Input event: %s', event)\n\n        # Check if this is a Create and we're failing Creates\n        if event['RequestType'] == 'Create' and event['ResourceProperties'].get('FailCreate', False):\n            raise RuntimeError('Create failure requested')\n\n        # Do the thing\n        # OriginalCode\n        message = event['ResourceProperties']['Message']\n\n        #MINE\n        iam = boto3.client('iam')\n        for i in message:\n            if i.get('tags'):\n                iam.tag_user(\n                    UserName=i.get('user'),\n                    Tags=i.get('tags')\n                )\n        #MINE\n\n        attributes = {\n            'Response': f\"Message sent from function {message}\"\n        }\n\n        cfnresponse.send(event, context, cfnresponse.SUCCESS,\n                         attributes, physical_id)\n    except Exception as e:\n        log.exception(e)\n        # cfnresponse's error message is always \"see CloudWatch\"\n        cfnresponse.send(event, context, cfnresponse.FAILED, {}, physical_id)"
+          "ZipFile": "def lambda_handler(event, context):\n    import logging as log\n    import cfnresponse\n    import boto3\n    log.getLogger().setLevel(log.INFO)\n\n    # This needs to change if there are to be multiple resources\n    # in the same stack\n    physical_id = 'TheOnlyCustomResource'\n\n    try:\n        log.info('Input event: %s', event)\n\n        # Check if this is a Create and we're failing Creates\n        if event['RequestType'] == 'Create' and event['ResourceProperties'].get('FailCreate', False):\n            raise RuntimeError('Create failure requested')\n\n        # Do the thing\n        # OriginalCode\n        message = event['ResourceProperties']['Message']\n\n        #MINE\n        iam = boto3.client('iam')\n        for i in message:\n            if i.get('tags'):\n                iam.tag_user(\n                    UserName=i.get('user'),\n                    Tags=i.get('tags')\n                )\n        #MINE\n\n        attributes = {\n            'Response': f\"Message sent from function {message}\"\n        }\n\n        cfnresponse.send(event, context, cfnresponse.SUCCESS, attributes, physical_id)\n    except Exception as e:\n        log.exception(e)\n        # cfnresponse's error message is always \"see CloudWatch\"\n        cfnresponse.send(event, context, cfnresponse.FAILED, {}, physical_id)"
         },
-        "Handler": "index.main",
+        "Handler": "index.lambda_handler",
         "Role": {
           "Fn::GetAtt": [
-            "SingletonLambdaf7d4f7304ee111e89c2dfa7ae01bbebcServiceRoleFE9ABB04",
+            "SingletonLambdatagger304ee111e89c2dfa7ae01bbebcServiceRoleA954E0E8",
             "Arn"
           ]
         },
         "Runtime": "python3.7",
+        "Tags": [
+          {
+            "Key": "Owner",
+            "Value": "Mystique"
+          },
+          {
+            "Key": "OwnerProfile",
+            "Value": "https://github.com/miztiik"
+          },
+          {
+            "Key": "ToKnowMore",
+            "Value": "https://youtube.com/c/valaxytechnologies"
+          }
+        ],
         "Timeout": 300
       },
       "DependsOn": [
-        "SingletonLambdaf7d4f7304ee111e89c2dfa7ae01bbebcServiceRoleDefaultPolicyEED0B067",
-        "SingletonLambdaf7d4f7304ee111e89c2dfa7ae01bbebcServiceRoleFE9ABB04"
+        "SingletonLambdatagger304ee111e89c2dfa7ae01bbebcServiceRoleDefaultPolicy8CD731AD",
+        "SingletonLambdatagger304ee111e89c2dfa7ae01bbebcServiceRoleA954E0E8"
       ],
       "Metadata": {
-        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/SingletonLambdaf7d4f7304ee111e89c2dfa7ae01bbebc/Resource"
+        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/SingletonLambdatagger304ee111e89c2dfa7ae01bbebc/Resource"
       }
     },
     "unicornTeamProjectRedRoleIdC9939132": {
@@ -350,6 +566,18 @@
         },
         "RoleName": "unicornTeamProjectRedRole",
         "Tags": [
+          {
+            "Key": "Owner",
+            "Value": "Mystique"
+          },
+          {
+            "Key": "OwnerProfile",
+            "Value": "https://github.com/miztiik"
+          },
+          {
+            "Key": "ToKnowMore",
+            "Value": "https://youtube.com/c/valaxytechnologies"
+          },
           {
             "Key": "teamName",
             "Value": "teamUnicorn"
@@ -393,7 +621,10 @@
               "Sid": "AllowRootLevelListingOfBucket"
             },
             {
-              "Action": "s3:Get*",
+              "Action": [
+                "s3:Get*",
+                "s3:DeleteObjectTagging"
+              ],
               "Condition": {
                 "StringEquals": {
                   "s3:ExistingObjectTag/teamName": "${aws:PrincipalTag/teamName}",
@@ -450,7 +681,7 @@
               "Action": "s3:*",
               "Condition": {
                 "StringEquals": {
-                  "${aws:PrincipalTag/projectAdmin}": [
+                  "${aws:PrincipalTag/teamAdmin}": [
                     "yes"
                   ]
                 }
@@ -527,6 +758,18 @@
         "RoleName": "unicornTeamProjectBlueRole",
         "Tags": [
           {
+            "Key": "Owner",
+            "Value": "Mystique"
+          },
+          {
+            "Key": "OwnerProfile",
+            "Value": "https://github.com/miztiik"
+          },
+          {
+            "Key": "ToKnowMore",
+            "Value": "https://youtube.com/c/valaxytechnologies"
+          },
+          {
             "Key": "teamName",
             "Value": "teamUnicorn"
           },
@@ -569,7 +812,10 @@
               "Sid": "AllowRootLevelListingOfBucket"
             },
             {
-              "Action": "s3:Get*",
+              "Action": [
+                "s3:Get*",
+                "s3:DeleteObjectTagging"
+              ],
               "Condition": {
                 "StringEquals": {
                   "s3:ExistingObjectTag/teamName": "${aws:PrincipalTag/teamName}",
@@ -626,7 +872,7 @@
               "Action": "s3:*",
               "Condition": {
                 "StringEquals": {
-                  "${aws:PrincipalTag/projectAdmin}": [
+                  "${aws:PrincipalTag/teamAdmin}": [
                     "yes"
                   ]
                 }
@@ -670,7 +916,7 @@
         "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/unicornTeamProjectBlueRoleId/DefaultPolicy/Resource"
       }
     },
-    "unicornTeamProjectAdminRoleIdEC5A44B9": {
+    "unicornTeamTeamAdminRoleIdA0EC24C2": {
       "Type": "AWS::IAM::Role",
       "Properties": {
         "AssumeRolePolicyDocument": {
@@ -700,23 +946,35 @@
           ],
           "Version": "2012-10-17"
         },
-        "RoleName": "unicornTeamProjectAdminRole",
+        "RoleName": "unicornTeamTeamAdminRole",
         "Tags": [
+          {
+            "Key": "Owner",
+            "Value": "Mystique"
+          },
+          {
+            "Key": "OwnerProfile",
+            "Value": "https://github.com/miztiik"
+          },
+          {
+            "Key": "ToKnowMore",
+            "Value": "https://youtube.com/c/valaxytechnologies"
+          },
           {
             "Key": "teamName",
             "Value": "teamUnicorn"
           },
           {
-            "Key": "projectAdmin",
+            "Key": "teamAdmin",
             "Value": "yes"
           }
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/unicornTeamProjectAdminRoleId/Resource"
+        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/unicornTeamTeamAdminRoleId/Resource"
       }
     },
-    "unicornTeamProjectAdminRoleIdDefaultPolicyF7C533A3": {
+    "unicornTeamTeamAdminRoleIdDefaultPolicy0E2DD59E": {
       "Type": "AWS::IAM::Policy",
       "Properties": {
         "PolicyDocument": {
@@ -745,7 +1003,10 @@
               "Sid": "AllowRootLevelListingOfBucket"
             },
             {
-              "Action": "s3:Get*",
+              "Action": [
+                "s3:Get*",
+                "s3:DeleteObjectTagging"
+              ],
               "Condition": {
                 "StringEquals": {
                   "s3:ExistingObjectTag/teamName": "${aws:PrincipalTag/teamName}",
@@ -802,7 +1063,7 @@
               "Action": "s3:*",
               "Condition": {
                 "StringEquals": {
-                  "${aws:PrincipalTag/projectAdmin}": [
+                  "${aws:PrincipalTag/teamAdmin}": [
                     "yes"
                   ]
                 }
@@ -835,25 +1096,127 @@
           ],
           "Version": "2012-10-17"
         },
-        "PolicyName": "unicornTeamProjectAdminRoleIdDefaultPolicyF7C533A3",
+        "PolicyName": "unicornTeamTeamAdminRoleIdDefaultPolicy0E2DD59E",
         "Roles": [
           {
-            "Ref": "unicornTeamProjectAdminRoleIdEC5A44B9"
+            "Ref": "unicornTeamTeamAdminRoleIdA0EC24C2"
           }
         ]
       },
       "Metadata": {
-        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/unicornTeamProjectAdminRoleId/DefaultPolicy/Resource"
+        "aws:cdk:path": "s3-restrict-object-access-based-on-tags-abac/unicornTeamTeamAdminRoleId/DefaultPolicy/Resource"
       }
     }
   },
   "Outputs": {
-    "ResponseMessage": {
-      "Description": "The message that came back from the Custom Resource",
+    "SecuirtyAutomationFrom": {
+      "Description": "To know more about this automation stack, check out our github page.",
+      "Value": "https://github.com/miztiik/dev-sec-ops/tree/master/s3-restrict-object-access-based-on-tags-abac"
+    },
+    "redRosyPassword": {
+      "Description": "Red Rosy User Password",
       "Value": {
         "Fn::GetAtt": [
-          "iamTagger9FA1A227",
+          "redRosyNewPasswordGeneratorCF32457D",
           "Response"
+        ]
+      }
+    },
+    "blueBobPassword": {
+      "Description": "Red Rosy User Password",
+      "Value": {
+        "Fn::GetAtt": [
+          "blueBobNewPasswordGenerator4743B88E",
+          "Response"
+        ]
+      }
+    },
+    "annoyingAdminPassword": {
+      "Description": "Red Rosy User Password",
+      "Value": {
+        "Fn::GetAtt": [
+          "annoyingAdminNewPasswordGenerator0BB97593",
+          "Response"
+        ]
+      }
+    },
+    "SecurePrivateBucket": {
+      "Description": "S3 Bucket to Test ABAC",
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://console.aws.amazon.com/s3/buckets/",
+            {
+              "Ref": "abacBucket74625259"
+            }
+          ]
+        ]
+      }
+    },
+    "RosyAssumeRedRoleUrl": {
+      "Description": "The URL for Rosy to assume teamRed Role",
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://signin.aws.amazon.com/switchrole?roleName=",
+            {
+              "Ref": "unicornTeamProjectRedRoleIdC9939132"
+            },
+            "&account=",
+            {
+              "Ref": "AWS::AccountId"
+            }
+          ]
+        ]
+      }
+    },
+    "blueBobAssumeRedRoleUrl": {
+      "Description": "The URL for Bob to assume teamBlue Role",
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://signin.aws.amazon.com/switchrole?roleName=",
+            {
+              "Ref": "unicornTeamProjectBlueRoleIdC5C4F56C"
+            },
+            "&account=",
+            {
+              "Ref": "AWS::AccountId"
+            }
+          ]
+        ]
+      }
+    },
+    "SampleS3UploadCommands": {
+      "Description": "For ProjectRed",
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "aws s3api put-object-tagging --bucket ",
+            {
+              "Ref": "abacBucket74625259"
+            },
+            " --key YOUR-OBJECT --tagging 'TagSet=[{Key=projectName,Value=teamRed}]'"
+          ]
+        ]
+      }
+    },
+    "UserLoginUrl": {
+      "Description": "The URL for Rosy to assume teamRed Role",
+      "Value": {
+        "Fn::Join": [
+          "",
+          [
+            "https://",
+            {
+              "Ref": "AWS::AccountId"
+            },
+            ".signin.aws.amazon.com/console"
+          ]
         ]
       }
     }

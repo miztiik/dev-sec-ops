@@ -1,11 +1,19 @@
-from aws_cdk import (
-    aws_s3 as s3,
-    aws_iam as iam,
-    aws_secretsmanager as secretsmanager,
-    core,
-)
+from aws_cdk import aws_iam as iam
+from aws_cdk import aws_s3 as s3
+from aws_cdk import aws_secretsmanager as secretsmanager
+from aws_cdk import core
+from custom_resource.iam_user_tagger_cdk import iam_user_tagger
+from custom_resource.random_string_generator_cdk import random_string_generator
 
-from custom_resource.my_custom_resource import MyCustomResource
+
+class global_args:
+    '''
+    Helper to define global statics
+    '''
+    OWNER                       = "MystiqueInfoSecurity"
+    ENVIRONMENT                 = "production"
+    SOURCE_INFO                 = "https://github.com/miztiik/dev-sec-ops/tree/master/s3-restrict-object-access-based-on-tags-abac"
+
 
 
 class S3RestrictObjectAccessBasedOnTagsAbacStack(core.Stack):
@@ -13,7 +21,7 @@ class S3RestrictObjectAccessBasedOnTagsAbacStack(core.Stack):
     def __init__(self, scope: core.Construct, id: str, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
-        bkt01 = s3.Bucket(
+        pvt_bkt = s3.Bucket(
             self,
             "abacBucket",
             versioned=True,
@@ -22,36 +30,56 @@ class S3RestrictObjectAccessBasedOnTagsAbacStack(core.Stack):
             removal_policy=core.RemovalPolicy.DESTROY
             )
 
-        bkt01.add_to_resource_policy(
+        pvt_bkt.add_to_resource_policy(
             iam.PolicyStatement(
                 effect=iam.Effect.ALLOW,
                 # actions=["s3:GetObject"],
                 actions=["s3:*"],
-                # resources=[bkt01.arn_for_objects("file.txt")],
-                resources=[bkt01.arn_for_objects("*")],
+                # resources=[pvt_bkt.arn_for_objects("file.txt")],
+                resources=[pvt_bkt.arn_for_objects("*")],
                 principals=[iam.AccountRootPrincipal()]
             )
         )
         # Create 3 Users: 1 Admin & 2 Normal Users
-        redUser1 = iam.User(
+
+        # Lets generate a password for our user
+        redRosy_new_pass = random_string_generator(
             self,
-            "redUser1",
+            "redRosyNewPasswordGenerator",
+            Length=20
+        )
+
+        redRosy = iam.User(
+            self,
+            "redRosy",
             user_name="redUser",
-            password=core.SecretValue.plain_text("redUser1SUPERDUMBpassWord")
+            password=core.SecretValue.plain_text(redRosy_new_pass.response)
         )
 
-        blueUser1 = iam.User(
+        blueBob_new_pass = random_string_generator(
             self,
-            "blueUser1",
+            "blueBobNewPasswordGenerator",
+            Length=20
+        )
+
+        blueBob = iam.User(
+            self,
+            "blueBob",
             user_name="blueUser",
-            password=core.SecretValue.plain_text("blueUser1SUPERDUMBpassWord")
+            password=core.SecretValue.plain_text(blueBob_new_pass.response)
         )
 
-        adminUser1 = iam.User(
+        annoyingAdmin_new_pass = random_string_generator(
             self,
-            "adminUser1",
+            "annoyingAdminNewPasswordGenerator",
+            Length=20
+        )
+
+        annoyingAdmin = iam.User(
+            self,
+            "annoyingAdmin",
             user_name="adminUser",
-            password=core.SecretValue.plain_text("adminUser1SUPERDUMBpassWord")
+            password=core.SecretValue.plain_text(annoyingAdmin_new_pass.response)
         )
 
         unicornGrp = iam.Group(
@@ -61,41 +89,55 @@ class S3RestrictObjectAccessBasedOnTagsAbacStack(core.Stack):
         )
 
         # Add Users To Group
-        unicornGrp.add_user(redUser1)
-        unicornGrp.add_user(blueUser1)
-        unicornGrp.add_user(adminUser1)
+        unicornGrp.add_user(redRosy)
+        unicornGrp.add_user(blueBob)
+        unicornGrp.add_user(annoyingAdmin)
 
         # blueGrp1.add_managed_policy(iam.ManagedPolicy.from_aws_managed_policy_name("AmazonS3ReadOnlyAccess"))
         ##############################################
         # We need a custom resource to TAG IAM Users #
         ##############################################
 
-        resource = MyCustomResource(
+        iamUserTaggerResp = iam_user_tagger(
             self, "iamTagger",
             message=[
-                {"user":redUser1.user_name, "tags":[{'Key': 'teamName','Value':'teamUnicorn'},
+                {"user":redRosy.user_name, "tags":[{'Key': 'teamName','Value':'teamUnicorn'},
                                                     {'Key': 'projectName','Value':'projectRed'}
                                                     ]
                 },
-                {"user":blueUser1.user_name, "tags":[{'Key': 'teamName','Value':'teamUnicorn'},
+                {"user":blueBob.user_name, "tags":[{'Key': 'teamName','Value':'teamUnicorn'},
                                                     {'Key': 'projectName','Value':'projectBlue'}
                                                     ]
                 },
-                {"user":adminUser1.user_name, "tags":[{'Key': 'teamName','Value':'teamUnicorn'},
-                                                    {'Key': 'projectAdmin','Value':'yes'}
+                {"user":annoyingAdmin.user_name, "tags":[{'Key': 'teamName','Value':'teamUnicorn'},
+                                                    {'Key': 'teamAdmin','Value':'yes'}
                                                     ]
                 }
             ]
         )
 
-        # Publish the custom resource output
-        core.CfnOutput(
-            self, "ResponseMessage",
-            description="The message that came back from the Custom Resource",
-            value=resource.response,
+        """
+        resource = MyCustomResource(
+            self, "iamTagger",
+            message=[
+                {"user":redRosy.user_name, "tags":[{'Key': 'teamName','Value':'teamUnicorn'},
+                                                    {'Key': 'projectName','Value':'projectRed'}
+                                                    ]
+                },
+                {"user":blueBob.user_name, "tags":[{'Key': 'teamName','Value':'teamUnicorn'},
+                                                    {'Key': 'projectName','Value':'projectBlue'}
+                                                    ]
+                },
+                {"user":annoyingAdmin.user_name, "tags":[{'Key': 'teamName','Value':'teamUnicorn'},
+                                                    {'Key': 'teamAdmin','Value':'yes'}
+                                                    ]
+                }
+            ]
         )
+        """
 
-        # Lets Create the IAM Role to be used by the groups
+        # Lets Create the IAM Role
+        # Uses belonging to this group, will be able to asume this role
         accountId=core.Aws.ACCOUNT_ID
         unicornTeamProjectRedRole = iam.Role(
             self,
@@ -115,14 +157,14 @@ class S3RestrictObjectAccessBasedOnTagsAbacStack(core.Stack):
         core.Tag.add(unicornTeamProjectBlueRole, key="teamName",value="teamUnicorn")
         core.Tag.add(unicornTeamProjectBlueRole, key="projectName",value="projectBlue")
 
-        unicornTeamProjectAdminRole = iam.Role(
+        unicornTeamTeamAdminRole = iam.Role(
             self,
-            'unicornTeamProjectAdminRoleId',
+            'unicornTeamTeamAdminRoleId',
             assumed_by=iam.AccountPrincipal(f"{accountId}"),
-            role_name="unicornTeamProjectAdminRole"
+            role_name="unicornTeamTeamAdminRole"
         )
-        core.Tag.add(unicornTeamProjectAdminRole, key="teamName",value="teamUnicorn")
-        core.Tag.add(unicornTeamProjectAdminRole, key="projectAdmin",value="yes")
+        core.Tag.add(unicornTeamTeamAdminRole, key="teamName",value="teamUnicorn")
+        core.Tag.add(unicornTeamTeamAdminRole, key="teamAdmin",value="yes")
 
         # Allow Group to Assume Role
         grpStmt1=iam.PolicyStatement(
@@ -130,12 +172,24 @@ class S3RestrictObjectAccessBasedOnTagsAbacStack(core.Stack):
                 resources=[f"arn:aws:iam::{accountId}:role/unicornTeamProject*"],
                 actions=["sts:AssumeRole"],
                 conditions={ "StringEquals": { "iam:ResourceTag/teamName": "${aws:PrincipalTag/teamName}",
-                                               "iam:ResourceTag/projectName": "${aws:PrincipalTag/projectName}"
+                                               "iam:ResourceTag/projectName": "${aws:PrincipalTag/projectName}" 
                                             }
                         }
             )
         grpStmt1.sid="AllowGroupMembersToAssumeRoleMatchingTeamName"
+
+        grpStmt2=iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                resources=[f"arn:aws:iam::{accountId}:role/unicornTeamTeamAdminRole"],
+                actions=["sts:AssumeRole"],
+                conditions={ "StringEquals": { "iam:ResourceTag/teamName": "${aws:PrincipalTag/teamName}",
+                                               "iam:ResourceTag/teamAdmin": "yes"
+                                            }
+                        }
+            )
+        grpStmt2.sid="AllowTeamAdminToAssumeRoleMatchingTeamName"
         unicornGrp.add_to_policy( grpStmt1 )
+        unicornGrp.add_to_policy( grpStmt2 )
 
         # Add Permissions to the Role
         roleStmt1=iam.PolicyStatement(
@@ -147,7 +201,7 @@ class S3RestrictObjectAccessBasedOnTagsAbacStack(core.Stack):
 
         roleStmt2=iam.PolicyStatement(
                 effect=iam.Effect.ALLOW,
-                resources=[bkt01.bucket_arn],
+                resources=[pvt_bkt.bucket_arn],
                 actions=["s3:ListBucket","s3:ListBucketVersions"],
                 # Below condition can be used to enable listing a particular prefix in another statement
                 # conditions={ "StringEquals" : { "s3:prefix":[""], "s3:delimiter":["/"] } }
@@ -156,8 +210,8 @@ class S3RestrictObjectAccessBasedOnTagsAbacStack(core.Stack):
 
         roleStmt3=iam.PolicyStatement(
                 effect=iam.Effect.ALLOW,
-                resources=[bkt01.arn_for_objects("*")],
-                actions=["s3:Get*"],
+                resources=[pvt_bkt.arn_for_objects("*")],
+                actions=["s3:Get*","s3:DeleteObjectTagging"],
                 conditions={ "StringEquals": { "s3:ExistingObjectTag/teamName" : "${aws:PrincipalTag/teamName}",
                                                "s3:ExistingObjectTag/projectName" : "${aws:PrincipalTag/projectName}" 
                                             }
@@ -167,7 +221,7 @@ class S3RestrictObjectAccessBasedOnTagsAbacStack(core.Stack):
 
         roleStmt4=iam.PolicyStatement(
                 effect=iam.Effect.ALLOW,
-                resources=[bkt01.arn_for_objects("*")],
+                resources=[pvt_bkt.arn_for_objects("*")],
                 actions=["s3:PutObject","s3:PutObjectTagging","s3:PutObjectVersionTagging"],
                 conditions={ "StringEquals": { "s3:RequestObjectTag/teamName" : "${aws:PrincipalTag/teamName}",
                                                "s3:RequestObjectTag/projectName" : "${aws:PrincipalTag/projectName}" 
@@ -178,11 +232,11 @@ class S3RestrictObjectAccessBasedOnTagsAbacStack(core.Stack):
 
         roleStmt5=iam.PolicyStatement(
                 effect=iam.Effect.ALLOW,
-                resources=[bkt01.bucket_arn, bkt01.arn_for_objects("*")],
+                resources=[pvt_bkt.bucket_arn, pvt_bkt.arn_for_objects("*")],
                 actions=["s3:*"],
                 conditions={ 
                     "StringEquals" : { 
-                        "${aws:PrincipalTag/projectAdmin}": [ "yes" ]
+                        "${aws:PrincipalTag/teamAdmin}": [ "yes" ]
                     }
                 }
             )
@@ -201,9 +255,84 @@ class S3RestrictObjectAccessBasedOnTagsAbacStack(core.Stack):
         unicornTeamProjectBlueRole.add_to_policy( roleStmt4 )
         unicornTeamProjectBlueRole.add_to_policy( roleStmt5 )
 
-        # Add same permissions to projectAdminRole
-        unicornTeamProjectAdminRole.add_to_policy( roleStmt1 )
-        unicornTeamProjectAdminRole.add_to_policy( roleStmt2 )
-        unicornTeamProjectAdminRole.add_to_policy( roleStmt3 )
-        unicornTeamProjectAdminRole.add_to_policy( roleStmt4 )
-        unicornTeamProjectAdminRole.add_to_policy( roleStmt5 )
+        # Add same permissions to teamAdminRole
+        unicornTeamTeamAdminRole.add_to_policy( roleStmt1 )
+        unicornTeamTeamAdminRole.add_to_policy( roleStmt2 )
+        unicornTeamTeamAdminRole.add_to_policy( roleStmt3 )
+        unicornTeamTeamAdminRole.add_to_policy( roleStmt4 )
+        unicornTeamTeamAdminRole.add_to_policy( roleStmt5 )
+
+
+        ###########################################
+        ################# OUTPUTS #################
+        ###########################################
+
+        output0 = core.CfnOutput(self,
+            "SecuirtyAutomationFrom",
+            value=f"{global_args.SOURCE_INFO}",
+            description="To know more about this automation stack, check out our github page."
+        )
+
+        output1_r = core.CfnOutput(self,
+            "redRosyPassword",
+            value=redRosy_new_pass.response,
+            description=f"Red Rosy User Password"
+        )
+        output1_b = core.CfnOutput(self,
+            "blueBobPassword",
+            value=blueBob_new_pass.response,
+            description=f"Red Rosy User Password"
+        )
+        output1_a = core.CfnOutput(self,
+            "annoyingAdminPassword",
+            value=annoyingAdmin_new_pass.response,
+            description=f"Red Rosy User Password"
+        )
+
+        output2 = core.CfnOutput(self,
+            "SecurePrivateBucket",
+            value=(
+                    f"https://console.aws.amazon.com/s3/buckets/"
+                    f"{pvt_bkt.bucket_name}"
+                ),
+            description=f"S3 Bucket to Test ABAC"
+        )
+
+        output3 = core.CfnOutput(self,
+            "Rosy-Assume-RedRole-Url",
+            value=(
+                    f"https://signin.aws.amazon.com/switchrole?roleName="
+                    f"{unicornTeamProjectRedRole.role_name}"
+                    f"&account="
+                    f"{core.Aws.ACCOUNT_ID}"
+                ),
+            description=f"The URL for Rosy to assume teamRed Role"
+        )
+
+
+        output4 = core.CfnOutput(self,
+            "blueBob-Assume-RedRole-Url",
+            value=(
+                    f"https://signin.aws.amazon.com/switchrole?roleName="
+                    f"{unicornTeamProjectBlueRole.role_name}"
+                    f"&account="
+                    f"{core.Aws.ACCOUNT_ID}"
+                ),
+            description=f"The URL for Bob to assume teamBlue Role"
+        )
+
+        output5 = core.CfnOutput(self,
+            "SampleS3UploadCommands",
+            value=(
+                    f"aws s3api put-object-tagging --bucket {pvt_bkt.bucket_name} --key YOUR-OBJECT --tagging 'TagSet=[{{Key=projectName,Value=teamRed}}]'"
+                ),
+            description=f"For ProjectRed"
+        )
+
+        output10 = core.CfnOutput(self,
+            "User-Login-Url",
+            value=(
+                    f"https://{core.Aws.ACCOUNT_ID}.signin.aws.amazon.com/console"
+                ),
+            description=f"The URL for Rosy to assume teamRed Role"
+        )
