@@ -1,0 +1,528 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "This template creates a Multi-AZ, multi-subnet VPC infrastructure. 10.0.0.0/20 and  three subnets - Private , Public & Spare  and Internet Gateway, along with bastion and one private instance",
+  "Parameters": {
+    "LatestAmiId": {
+        "Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
+        "Default": "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
+      },
+      "KeyName": {
+        "Description": "Name of an existing EC2 KeyPair to enable SSH access to the instance",
+        "Type": "AWS::EC2::KeyPair::KeyName",
+        "Default": "proxy",
+        "ConstraintDescription": "must be the name of an existing EC2 KeyPair."
+      },
+    "EnvType": {
+      "Description": "Choose the type of Environment",
+      "Default": "Production",
+      "Type": "String",
+      "AllowedValues": [
+        "Dev",
+        "Test",
+        "Production"
+      ],
+      "ConstraintDescription": "Must choose the type of environment"
+    }
+  },
+  "Mappings": {},
+  "Resources": {
+    "lmsVPC": {
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+        "CidrBlock": "10.0.0.0/20",
+        "EnableDnsSupport": "True",
+        "EnableDnsHostnames": "True",
+        "InstanceTenancy": "default",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "lmsVPC"
+          }
+        ]
+      }
+    },
+    "lmsVPCIntGateway": {
+      "Type": "AWS::EC2::InternetGateway",
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "lmsVPCIntGateway"
+          }
+        ]
+      }
+    },
+    "AttachGateway": {
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+      "Properties": {
+        "VpcId": {
+          "Ref": "lmsVPC"
+        },
+        "InternetGatewayId": {
+          "Ref": "lmsVPCIntGateway"
+        }
+      }
+    },
+    "azAPrivateSubnet": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": {
+          "Ref": "lmsVPC"
+        },
+        "CidrBlock": "10.0.0.0/22",
+        "AvailabilityZone": {
+          "Fn::Select": [
+            "0",
+            {
+              "Fn::GetAZs": ""
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "azA-Private-Subnet"
+          }
+        ]
+      }
+    },
+    "azAWebSubnet": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": {
+          "Ref": "lmsVPC"
+        },
+        "CidrBlock": "10.0.4.0/23",
+        "AvailabilityZone": {
+          "Fn::Select": [
+            "0",
+            {
+              "Fn::GetAZs": ""
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "azA-web-Subnet"
+          }
+        ]
+      }
+    },
+    "azASpareSubnet": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": {
+          "Ref": "lmsVPC"
+        },
+        "CidrBlock": "10.0.6.0/23",
+        "AvailabilityZone": {
+          "Fn::Select": [
+            "0",
+            {
+              "Fn::GetAZs": ""
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "azA-spare-Subnet"
+          }
+        ]
+      }
+    },
+    "azBPrivateSubnet": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": {
+          "Ref": "lmsVPC"
+        },
+        "CidrBlock": "10.0.8.0/22",
+        "AvailabilityZone": {
+          "Fn::Select": [
+            "1",
+            {
+              "Fn::GetAZs": ""
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "azB-Private-Subnet"
+          }
+        ]
+      }
+    },
+    "azBWebSubnet": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": {
+          "Ref": "lmsVPC"
+        },
+        "CidrBlock": "10.0.12.0/23",
+        "AvailabilityZone": {
+          "Fn::Select": [
+            "1",
+            {
+              "Fn::GetAZs": ""
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "azB-web-Subnet"
+          }
+        ]
+      }
+    },
+    "azBSpareSubnet": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": {
+          "Ref": "lmsVPC"
+        },
+        "CidrBlock": "10.0.14.0/23",
+        "AvailabilityZone": {
+          "Fn::Select": [
+            "1",
+            {
+              "Fn::GetAZs": ""
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "azB-spare-Subnet"
+          }
+        ]
+      }
+    },
+    "myRouteTbl": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "lmsVPC"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "myRouteTbl"
+          }
+        ]
+      }
+    },
+    "PublicRoute": {
+      "Type": "AWS::EC2::Route",
+      "DependsOn": "lmsVPCIntGateway",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "myRouteTbl"
+        },
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": {
+          "Ref": "lmsVPCIntGateway"
+        }
+      }
+    },
+    "azAwebSubnetRouteTblAssn": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "azAWebSubnet"
+        },
+        "RouteTableId": {
+          "Ref": "myRouteTbl"
+        }
+      }
+    },
+    "azBWebSubnetRouteTblAssn": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "azBWebSubnet"
+        },
+        "RouteTableId": {
+          "Ref": "myRouteTbl"
+        }
+      }
+    },
+    "LoadBalancerSecGrp": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "The Security Group for the Elastic Load Balancers",
+        "VpcId": {
+          "Ref": "lmsVPC"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "Load-Balancer-Security-Group"
+          }
+        ]
+      }
+    },
+    "webSecGrp": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Security Group for Web servers",
+        "VpcId": {
+          "Ref": "lmsVPC"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "Web-Security-Group"
+          }
+        ]
+      }
+    },
+    "webSecGrpInBoundRule1": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "IpProtocol": "tcp",
+        "FromPort": "22",
+        "ToPort": "22",
+        "CidrIp": "0.0.0.0/0",
+        "GroupId": {
+          "Fn::GetAtt": [
+            "webSecGrp",
+            "GroupId"
+          ]
+        }
+      }
+    },
+    "webSecGrpInBoundRule2": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "IpProtocol": "tcp",
+        "FromPort": "80",
+        "ToPort": "80",
+        "CidrIp": "0.0.0.0/0",
+        "GroupId": {
+          "Fn::GetAtt": [
+            "webSecGrp",
+            "GroupId"
+          ]
+        }
+      }
+    },
+    "webSecGrpInBoundRule3": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "IpProtocol": "tcp",
+        "FromPort": "443",
+        "ToPort": "443",
+        "CidrIp": "0.0.0.0/0",
+        "GroupId": {
+          "Fn::GetAtt": [
+            "webSecGrp",
+            "GroupId"
+          ]
+        }
+      }
+    },
+    "webSecGrpInBoundRule4": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "IpProtocol": "tcp",
+        "FromPort": "18010",
+        "ToPort": "18010",
+        "CidrIp": "0.0.0.0/0",
+        "GroupId": {
+          "Fn::GetAtt": [
+            "webSecGrp",
+            "GroupId"
+          ]
+        }
+      }
+    },
+    "dbSecGrp": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Security Group for Database servers",
+        "VpcId": {
+          "Ref": "lmsVPC"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "DB-Security-Group"
+          }
+        ]
+      }
+    },
+    "dbSecGrpInBoundRule": {
+      "Type": "AWS::EC2::SecurityGroupIngress",
+      "Properties": {
+        "IpProtocol": "tcp",
+        "FromPort": "3306",
+        "ToPort": "3306",
+        "SourceSecurityGroupId": {
+          "Fn::GetAtt": [
+            "webSecGrp",
+            "GroupId"
+          ]
+        },
+        "GroupId": {
+          "Fn::GetAtt": [
+            "dbSecGrp",
+            "GroupId"
+          ]
+        }
+      }
+    },
+    "dbSubnetGroup": {
+      "Type": "AWS::RDS::DBSubnetGroup",
+      "Properties": {
+        "DBSubnetGroupDescription": "The group of subnets where RDS Instance(s) will be hosted",
+        "SubnetIds": [
+          {
+            "Ref": "azAPrivateSubnet"
+          },
+          {
+            "Ref": "azBPrivateSubnet"
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "dbSubnetGroup"
+          }
+        ]
+      }
+    },
+
+
+      "privSecGrp": {
+        "Type": "AWS::EC2::SecurityGroup",
+        "Properties": {
+          "GroupDescription": "Security Group for PRIVATE servers",
+          "VpcId": {
+            "Ref": "lmsVPC"
+          },
+          "Tags": [
+            {
+              "Key": "Name",
+              "Value": "PrivateSecGrp"
+            }
+          ]
+        }
+      },
+      "privSecGrpInBoundRule1": {
+        "Type": "AWS::EC2::SecurityGroupIngress",
+        "Properties": {
+          "IpProtocol": "tcp",
+          "FromPort": "22",
+          "ToPort": "22",
+          "SourceSecurityGroupId": {
+            "Fn::GetAtt": [
+              "webSecGrp",
+              "GroupId"
+            ]
+          },
+          "GroupId": {
+            "Fn::GetAtt": [
+              "privSecGrp",
+              "GroupId"
+            ]
+          }
+        }
+      },
+      "bastionInstance" : {
+        "Type" : "AWS::EC2::Instance", 
+        "Properties" : {
+          "ImageId" : { "Ref" : "LatestAmiId" },
+          "KeyName" : { "Ref" : "KeyName" },
+          "InstanceType" : "t2.micro",
+          "NetworkInterfaces": [
+            {
+              "AssociatePublicIpAddress": true,
+              "DeviceIndex": "0",
+              "SubnetId": {
+                "Ref": "azAWebSubnet"
+              },
+              "GroupSet": [{ "Ref" : "webSecGrp" }]
+            }
+          ],
+          "Tags": [
+            {
+              "Key": "Name",
+              "Value": "Bastion"
+            },
+            {
+              "Key": "Owner",
+              "Value": "Mystique"
+            },
+            {
+              "Key": "OwnerProfile",
+              "Value": "https://github.com/miztiik"
+            },
+            {
+              "Key": "ToKnowMore",
+              "Value": "https://youtube.com/c/valaxytechnologies"
+            }
+          ]
+        }
+      },
+      "privateInstance" : {
+        "Type" : "AWS::EC2::Instance", 
+        "Properties" : {
+          "ImageId" : { "Ref" : "LatestAmiId" },
+          "KeyName" : { "Ref" : "KeyName" },
+          "InstanceType" : "t2.micro",
+          "NetworkInterfaces": [
+            {
+              "DeviceIndex": "0",
+              "SubnetId": {
+                "Ref": "azAPrivateSubnet"
+              },
+              "GroupSet": [{ "Ref" : "privSecGrp" }]
+            }
+          ],
+          "Tags": [
+            {
+              "Key": "Name",
+              "Value": "secureServer"
+            },
+            {
+              "Key": "Owner",
+              "Value": "Mystique"
+            },
+            {
+              "Key": "OwnerProfile",
+              "Value": "https://github.com/miztiik"
+            },
+            {
+              "Key": "ToKnowMore",
+              "Value": "https://youtube.com/c/valaxytechnologies"
+            }
+          ]
+        }
+      }
+
+  },
+  "Outputs": {
+    "BastionInstanceIp": {
+      "Description": "Bastion Instance Public IP",
+      "Value": {
+        "Fn::GetAtt": [
+          "bastionInstance",
+          "PublicIp"
+        ]
+      }
+    },
+    "privateInstanceIp": {
+      "Description": "Private Instance Public IP",
+      "Value": {
+        "Fn::GetAtt": [
+          "privateInstance",
+          "PublicIp"
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,695 @@
+# Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+
+Description: Outbound filtering proxy
+
+Parameters:
+
+  WhitelistedDomains:
+    Type: String
+    Default: .amazonaws.com, .debian.org, .aws.amazon.com
+    Description: Whitelisted domains comma separated 
+  
+  CustomDNS:
+    Type: String
+    Default: default
+    Description: Provide optional a DNS server for domain filtering, like OpenDNS (comma separated, like 8.8.8.8,8.8.8.7)
+  
+  KeyName:
+    Type: "String"
+    Description: Name of RSA key for EC2 access for testing only.
+    Default: ''
+
+  ProxyPort:
+    Type: String
+    Default: 3128
+    Description: Port Proxy 
+
+  
+  VpcId: 
+    Description: VPC ID Where the Proxy will be installed
+    Type: "AWS::EC2::VPC::Id"
+
+  PrivateSubnetIDs: 
+    Description: Private SubnetIDs where the Network LoadBalancer will be placed (Select min 2 max 3)
+    Type: "List<AWS::EC2::Subnet::Id>"
+  
+  PublicSubnetIDs: 
+    Description: Public SubnetIDs where the proxy will be placed (Select min 2 max 3)
+    Type: "List<AWS::EC2::Subnet::Id>"
+  
+  InstanceType:
+    Description: WebServer EC2 instance type
+    Type: String
+    Default: t3.small
+    AllowedValues:
+    - t3.nano
+    - t3.micro
+    - t3.small
+    - t3.medium
+    ConstraintDescription: must be a valid EC2 instance type.
+
+  NetworkAllowedCIDR:
+    Description: CIDR allowed in Proxy Security Group. The allowed block size is between a /32 netmask and /8 netmask
+    Type: String
+    Default: 172.31.0.0/16
+    AllowedPattern: ^[.0-9]*\/([89]|[12][0-9]|3[0-2])$
+
+  LatestAmiId:
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>'
+    Default: '/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2'
+    Description: AMI ID pointer in SSM. Default latest AMI Amazon Linux2.   
+
+Metadata:
+  'AWS::CloudFormation::Interface':
+    ParameterGroups:
+    - Label:
+        default: Proxy parameter
+      Parameters:
+      - WhitelistedDomains
+      - CustomDNS  
+      - ProxyPort
+      - InstanceType
+      - LatestAmiId
+      - KeyName
+
+    - Label:
+        default: Network parameter
+      Parameters:
+      - VpcId
+      - PrivateSubnetIDs
+      - PublicSubnetIDs 
+      - NetworkAllowedCIDR
+
+    ParameterLabels:
+      WhitelistedDomains:
+        default: Allowed domains (whitelisted)
+      CustomDNS:
+        default: Custom DNS servers
+      ProxyPort:
+        default: Proxy Port
+      InstanceType:
+        default: Instance Type
+      LatestAmiId:
+        default: AMI ID  
+      KeyName: 
+        default: SSH Key name
+      VpcId:
+        default: VPC ID
+      PrivateSubnetIDs:
+        default: Private Subnet IDs
+      PublicSubnetIDs:
+        default: Public Subnet IDs
+      NetworkAllowedCIDR:
+        default: Allowed client CIRD
+
+
+Conditions:
+
+  AddSSHKey: !Not
+   - !Equals
+     - ''
+     - !Ref KeyName
+
+Resources:
+
+  OutboundProxyRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "Outbound-proxy-${AWS::StackName}"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - ec2.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+      Policies:
+      - PolicyName: LogRolePolicy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+                - logs:DescribeLogStreams
+            Resource:
+             - !GetAtt OutboundProxyLogGroup.Arn
+      - PolicyName: AssociateEIP
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - ec2:AssociateAddress
+            - ec2:Describe*
+            Resource:
+            - "*"
+      - PolicyName: RevokeAuthorizeSG
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - ec2:RevokeSecurityGroupIngress
+            - ec2:AuthorizeSecurityGroupIngress
+            - ec2:Describe*
+            Resource:
+            - "*"
+      - PolicyName: GetSecret
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - secretsmanager:GetSecretValue
+            Resource:
+            - !Ref WhitelistedSitesSecret
+      - PolicyName: CloudWatchMetric
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action: 
+            - cloudwatch:PutMetricData
+            Resource:
+            - "*"
+
+  WhitelistedSitesSecret:
+    Type: 'AWS::SecretsManager::Secret'
+    Properties:
+      Name: Proxy-Domains-Whitelisting
+      Description: This secret contains the proxy whitelisted domains 
+      SecretString: !Ref WhitelistedDomains
+
+  FixedEIPa:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+  
+  FixedEIPb:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+  FixedEIPc:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+  FixedEIPd:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Scheme: internal
+      Type: network
+      Name: OutboundProxyLoadBalancer
+      Subnets: !Ref PrivateSubnetIDs
+  
+  NetworkLoadBalancerTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: OutboundProxyTargetGroup
+      Port: !Ref ProxyPort
+      Protocol: TCP
+      VpcId: !Ref VpcId
+      TargetGroupAttributes:
+        - Key: deregistration_delay.timeout_seconds
+          Value: 60 
+      Tags:
+        - Key: Name
+          Value: SMARTProxyTargetGroup
+  LoadBalancerListenerHTTPS:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+      - Type: forward
+        TargetGroupArn: !Ref NetworkLoadBalancerTargetGroup
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: !Ref ProxyPort
+      Protocol: TCP
+
+  OutboundProxyProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: "/"
+      InstanceProfileName: !Sub "Proxy-EC2-${AWS::StackName}"
+      Roles: 
+        - !Ref OutboundProxyRole
+
+  OutboundProxySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow access to Outbound Proxy
+      VpcId: !Ref VpcId
+      SecurityGroupIngress:
+      - CidrIp: !Ref NetworkAllowedCIDR
+        FromPort: !Ref ProxyPort
+        ToPort: !Ref ProxyPort
+        IpProtocol: tcp
+
+  OutboundProxyASG:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      VPCZoneIdentifier: !Ref PublicSubnetIDs
+      Cooldown: 120
+      LaunchConfigurationName: !Ref OutboundProxyLaunchConfig
+      MaxSize: 3
+      MinSize: 1
+      TargetGroupARNs:
+        - Ref: "NetworkLoadBalancerTargetGroup"
+      TerminationPolicies:
+      - OldestInstance
+      Tags:
+      - Key: Name
+        PropagateAtLaunch: 'true'
+        Value: outbound-proxy
+      - Key: AppVersion
+        PropagateAtLaunch: 'true'
+        Value: 1.0.0
+      - Key: ApplicationID
+        PropagateAtLaunch: 'true'
+        Value: outbound-proxy
+    CreationPolicy:
+      ResourceSignal:
+        Timeout: PT15M
+        Count: '1'
+    UpdatePolicy:
+      AutoScalingScheduledAction:
+        IgnoreUnmodifiedGroupSizeProperties: true
+      AutoScalingRollingUpdate:
+        MinInstancesInService: 1
+        MaxBatchSize: 1
+        PauseTime: PT15M
+        WaitOnResourceSignals: 'true'
+        SuspendProcesses:
+        - ScheduledActions
+
+  ScaleOutPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AdjustmentType: ChangeInCapacity
+      AutoScalingGroupName:
+        Ref: OutboundProxyASG
+      Cooldown: '90'
+      ScalingAdjustment: '1'
+
+  CPUAlarmHigh:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      EvaluationPeriods: '1'
+      Statistic: Average
+      Threshold: '80'
+      AlarmDescription: Alarm if CPU too high (50%) or metric disappears indicating instance
+        is down
+      Period: '60'
+      AlarmActions:
+      - Ref: ScaleOutPolicy
+      Namespace: AWS/EC2
+      Dimensions:
+      - Name: AutoScalingGroupName
+        Value:
+          Ref: OutboundProxyASG
+      ComparisonOperator: GreaterThanThreshold
+      MetricName: CPUUtilization
+
+  ScaleInPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AdjustmentType: ChangeInCapacity
+      AutoScalingGroupName:
+        Ref: OutboundProxyASG
+      Cooldown: '90'
+      ScalingAdjustment: '-1'
+
+  CPUAlarmLow:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      EvaluationPeriods: '1'
+      Statistic: Average
+      Threshold: '10'
+      AlarmDescription: Alarm if CPU low (10%) or metric disappears indicating instance
+        is down
+      Period: '60'
+      AlarmActions:
+      - Ref: ScaleInPolicy
+      Namespace: AWS/EC2
+      Dimensions:
+      - Name: AutoScalingGroupName
+        Value:
+          Ref: OutboundProxyASG
+      ComparisonOperator:  LessThanThreshold
+      MetricName: CPUUtilization
+
+  OutboundProxyLaunchConfig:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Metadata:
+      Comment: Configures Outbound Proxy
+      AWS::CloudFormation::Init:
+        config:
+          files:
+            "/root/update-dns.sh":
+              content: !Sub | 
+                   # DNS List comma delimited 
+                   dns_list="${CustomDNS}"
+                   #
+                   # check if default 
+                   if [[ $dns_list == "default" ]]; then 
+                     exit
+                   fi
+                   #
+                   # split to list 
+                   array=(${!dns_list//,/ })
+                   int_list=`ls /etc/sysconfig/network-scripts/ifcfg-* | grep -v "\-lo$\|old$"`
+                   
+                   # for all interfaces except lookback 
+                   for int in ${!int_list[@]}
+                   do
+                         # remove spaces 
+                         $int=${!int//[[:blank:]]/}
+                         echo "working on $int"
+                         # make tmp file without DNS settings
+                         grep -ve "PEERDNS=\|DNS.=" $int > ./tmp.int.conf
+                         grep -v "nameserver" /etc/resolv.conf  > ./tmp.resolv.conf
+                         echo "PEERDNS=yes" >> ./tmp.int.conf
+                         counter=1
+                         for i in ${!array[@]}
+                         do
+                             echo "DNS${!counter}=${!i}" >> ./tmp.int.conf
+                             echo "nameserver ${!i}" >> ./tmp.resolv.conf
+                             ((counter++))
+                         done
+                         # update the interface config 
+                         mv $int ${!int}.old
+                         cp ./tmp.int.conf $int
+                   done
+                   # update the resolv.conf 
+                   mv /etc/resolv.conf  /etc/resolv.conf.old
+                   cp ./tmp.resolv.conf /etc/resolv.conf
+                   # clear squid cache if squid is running. Relevant for dns content filtering
+                   # systemctl status squid && systemctl stop squid && rm -rf /var/spool/squid/ && squid -z && systemctl start squid 
+                   echo "done"
+              mode: '000755'
+              owner: "root"
+              group: "root"
+            "/etc/awslogs/awscli.conf":
+              content: !Sub | 
+                [plugins]
+                cwlogs = cwlogs
+                [default]
+                region = ${AWS::Region}
+              mode: '000755'
+              owner: "root"
+              group: "root"
+            "/root/fetch-config-cron.sh":
+              content: !Sub | 
+                 aws secretsmanager get-secret-value  --secret-id ${WhitelistedSitesSecret} --region ${AWS::Region} > ~/.tmp.hosts
+                 upstreamVersion=$(grep VersionId ~/.tmp.hosts) 
+                 hostVersion=$(cat ~/configVersion) || hostVersion="0"
+                 # update if config 
+                 if [[ $upstreamVersion != $hostVersion ]]; then
+                    mv /etc/squid/squid.allowed.sites.txt /etc/squid/squid.allowed.sites.txt.old
+                    grep SecretString ~/.tmp.hosts | sed  's/^.*SecretString\": \"\(.*\)\"\,/\1/' | tr -d " " | tr "," "\n" > /etc/squid/squid.allowed.sites.txt
+                    grep VersionId ~/.tmp.hosts > ~/configVersion
+                    systemctl restart squid
+                    echo "Squid config updated"
+                    logger "Squid config updated by cron-job from AWS secret store ${WhitelistedSitesSecret}"
+                 fi 
+              mode: '000755'
+              owner: "root"
+              group: "root"
+            "/root/get-stats-cron.sh":
+              content: !Sub | 
+                  #!/bin/bash
+                  #
+                  # Copyright 2018 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+                  # SPDX-License-Identifier: MIT-0#
+                  #
+                  # gets statistics from squid proxy and pushes them to CloudWatch
+                  #
+                  ###
+                  region=`curl --silent http://169.254.169.254/latest/dynamic/instance-identity/document | grep region | cut -f 4 -d '"'`
+                  instanceId=`curl --silent  curl http://169.254.169.254/latest/meta-data/instance-id`
+                  
+                  squidclient -h localhost cache_object://localhost/ mgr:5min | grep "client_http.request\|client_http.hits\|client_http.errors\|client_http.kbytes_in\|client_http.kbytes_out\|server.all." | while read line ; do
+                      name=`echo $line | cut -d "=" -f 1`
+                      value=`echo $line | cut -d "=" -f 2 | sed "s/[^0-9\.]*//g" `
+                      aws cloudwatch put-metric-data --metric-name "$name" --namespace Proxy --dimensions InstanceID="$instanceId" --value "$value"  --region $region
+                  done
+              mode: '000755'
+              owner: "root"
+              group: "root"
+            "/etc/squid/squid.allowed.sites.txt":
+              content: | 
+                .amazon.com
+              mode: '000400'
+              owner: "root"
+              group: "root"
+            "/etc/squid/squid.conf":
+              content: !Sub |
+                 # Recommended minimum configuration:
+                 #
+
+                 # Example rule allowing access from your local networks.
+                 # Adapt to list your (internal) IP networks from where browsing
+                 # should be allowed
+                 acl localnet src 10.0.0.0/8	# RFC1918 possible internal network
+                 acl localnet src 172.16.0.0/12	# RFC1918 possible internal network
+                 acl localnet src 192.168.0.0/16	# RFC1918 possible internal network
+                 acl localnet src fc00::/7       # RFC 4193 local private network range
+                 acl localnet src fe80::/10      # RFC 4291 link-local (directly plugged) machines
+                 acl localnet src 127.0.0.1
+
+
+                 acl SSL_ports port 443
+                 acl Safe_ports port 80		# http
+                 acl Safe_ports port 21		# ftp
+                 acl Safe_ports port 443		# https
+                 acl Safe_ports port 70		# gopher
+                 acl Safe_ports port 210		# wais
+                 acl Safe_ports port 1025-65535	# unregistered ports
+                 acl Safe_ports port 280		# http-mgmt
+                 acl Safe_ports port 488		# gss-http
+                 acl Safe_ports port 591		# filemaker
+                 acl Safe_ports port 777		# multiling http
+                 acl CONNECT method CONNECT
+
+                 #
+                 # Recommended minimum Access Permission configuration:
+                 #
+                 # Deny requests to certain unsafe ports
+                 http_access deny !Safe_ports
+
+                 # Deny CONNECT to other than secure SSL ports
+                 http_access deny CONNECT !SSL_ports
+
+                 # Only allow cachemgr access from localhost
+                 http_access allow localhost manager
+                 http_access deny manager
+
+                 # We strongly recommend the following be uncommented to protect innocent
+                 # web applications running on the proxy server who think the only
+                 # one who can access services on "localhost" is a local user
+                 #http_access deny to_localhost
+
+                 #
+                 # INSERT YOUR OWN RULE(S) HERE TO ALLOW ACCESS FROM YOUR CLIENTS
+                 #
+
+                 # Example rule allowing access from your local networks.
+                 # Adapt localnet in the ACL section to list your (internal) IP networks
+                 # from where browsing should be allowed
+                 acl allowed_http_sites dstdomain "/etc/squid/squid.allowed.sites.txt"
+                 http_access allow allowed_http_sites
+                 #http_access allow localnet
+                 #http_access allow localhost
+
+                 # And finally deny all other access to this proxy
+                 http_access deny all
+
+                 # Squid normally listens to port 3128
+                 http_port 3128 ssl-bump cert=/etc/squid/cert.pem
+                 acl allowed_https_sites ssl::server_name "/etc/squid/squid.allowed.sites.txt"
+                 acl step1 at_step SslBump1
+                 acl step2 at_step SslBump2
+                 acl step3 at_step SslBump3
+                 ssl_bump peek step1 all
+                 ssl_bump peek step2 allowed_https_sites
+                 ssl_bump splice step3 allowed_https_sites
+                 ssl_bump terminate step2 all
+
+                 # Uncomment and adjust the following to add a disk cache directory.
+                 #cache_dir ufs /var/spool/squid 100 16 256
+
+                 # Leave coredumps in the first cache dir
+                 coredump_dir /var/spool/squid
+                 #
+                 # Add any of your own refresh_pattern entries above these.
+                 #
+                 refresh_pattern ^ftp:		1440	20%	10080
+                 refresh_pattern ^gopher:	1440	0%	1440
+                 refresh_pattern -i (/cgi-bin/|\?) 0	0%	0
+                 refresh_pattern .		0	20%	4320
+            "/etc/awslogs/awslogs.conf":
+              content: !Sub |
+                [general]
+                state_file = /var/lib/awslogs/agent-state
+                [/var/log/squid/access.log]
+                file = /var/log/squid/access.log
+                log_group_name = ${OutboundProxyLogGroup}
+                log_stream_name = {instance_id}/squid_access.log
+                #datetime_format = %d/%b/%Y:%H:%M:%S
+              mode: '000400'
+              owner: "root"
+              group: "root"
+            "/etc/cfn/cfn-hup.conf":
+              content: !Sub |
+                [main]
+                stack= ${AWS::StackId}
+                region=${AWS::Region}
+                interval=5
+              mode: "000400"
+              owner: "root"
+              group: "root"
+            "/etc/cfn/hooks.d/cfn-auto-reloader.conf":
+              content: !Sub |
+                [cfn-auto-reloader-hook]
+                triggers=post.update
+                path=Resources.OutboundProxyLaunchConfig.Metadata.AWS::CloudFormation::Init
+                action=/opt/aws/bin/cfn-init -v --stack ${AWS::StackName} --resource OutboundProxyLaunchConfig --region ${AWS::Region}
+                runas=root
+              mode: "000400"
+              owner: "root"
+              group: "root"
+    Properties:
+      AssociatePublicIpAddress: True
+      ImageId:  !Ref LatestAmiId
+      InstanceType: !Ref InstanceType
+      KeyName: !If 
+         - AddSSHKey
+         - !Ref KeyName
+         - !Ref "AWS::NoValue"  
+      SecurityGroups:
+      - !Ref OutboundProxySecurityGroup
+
+      IamInstanceProfile:
+        Ref: OutboundProxyProfile
+      UserData:
+        Fn::Base64: !Sub |
+            #!/bin/bash -xe
+            yum -y install python-pip
+            yum -y install python-setuptools
+            yum install -y awscli
+            # install squid
+            yum install -y squid
+            # install the CloudWatch Logs agent
+            yum install -y awslogs
+            # Get the latest CloudFormation package
+            easy_install https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
+            # Start cfn-init
+            /opt/aws/bin/cfn-init -s ${AWS::StackId} -r OutboundProxyLaunchConfig --region ${AWS::Region} || error_exit 'Failed to run cfn-init'
+            # Start up the cfn-hup daemon to listen for changes to the launch configuration metadata
+            /opt/aws/bin/cfn-hup || error_exit 'Failed to start cfn-hup'
+            # start the cloud watch agent
+            systemctl start awslogsd
+            # get the IP allocation id 
+            EIPs=(${FixedEIPa.AllocationId} ${FixedEIPb.AllocationId} ${FixedEIPc.AllocationId} ${FixedEIPd.AllocationId})
+            for i in ${!EIPs[@]}; do
+               out=$(aws ec2  describe-addresses --region ${AWS::Region} --allocation-ids $i) 
+               if [[ $out != *AssociationId* ]]; then 
+                     freeEIP=$i
+                     break
+               fi
+            done
+            # bind the address 
+            echo "binding EIP"
+            aws ec2 associate-address --region ${AWS::Region} --instance-id $(curl -s http://169.254.169.254/latest/meta-data/instance-id) --allocation-id $freeEIP --allow-reassociation || error_exit 'Failed to Associate Elastic IP'
+            # generate dummy certificate
+            openssl req -x509 -newkey rsa:4096 -keyout /etc/squid/cert.pem -out /etc/squid/cert.pem -days 3650 -subj "/C=XX/ST=XX/L=squid/O=squid/CN=squid" -nodes
+            #  get the whitelisted domain
+            /root/fetch-config-cron.sh
+            #  start squit
+            systemctl start squid
+            # cron to update whitelist if needed every 5 min 
+            echo "*/5 * * * * /root/fetch-config-cron.sh" | crontab -
+            # cron to to get and push proxy stats
+            (crontab -l ; echo "*/5 * * * * /root/get-stats-cron.sh") | crontab -
+            # set up DNS if needed 
+            if [[ ${CustomDNS} != "default" ]]; then
+                /root/update-dns.sh
+            fi 
+            # All done so signal success
+            /opt/aws/bin/cfn-signal -e $? --stack ${AWS::StackId} --resource OutboundProxyASG --region ${AWS::Region}
+            echo "User data done"
+
+  OutboundProxyLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays: 30
+      LogGroupName: !Sub "Proxy-${AWS::StackName}"
+
+Outputs:
+  CloudWatchLogGroupName:
+    Description: The name of the CloudWatch log group for outbound proxy
+    Value: !Ref OutboundProxyLogGroup
+    Export:
+      Name: Proxy-CloudWatchLogGroupName
+
+  OutboundProxyDomain:
+    Description: Proxy DNS name to be used in the clients 
+    Value: !GetAtt LoadBalancer.DNSName
+    Export: 
+        Name: Proxy-Domain
+
+  OutboundProxyPort:
+    Description: Port of the Proxy 
+    Value: !Ref ProxyPort
+    Export:
+      Name: Proxy-Port
+  
+  EgressIP1:
+    Description: Outbound Proxy source IP (first)
+    Value: !Ref FixedEIPa
+    Export: 
+        Name: Proxy-Egress-IP-1
+  EgressIP2:
+    Description: Outbound Proxy source IP (second)
+    Value: !Ref FixedEIPb
+    Export: 
+        Name: Proxy-Egress-IP-2
+  EgressIP3:
+    Description: Outbound Proxy source IP (third) 
+    Value: !Ref FixedEIPc
+    Export: 
+        Name: Proxy-Egress-IP-3
+  EgressIP4:
+    Description: Outbound Proxy source IP (fourth)
+    Value: !Ref FixedEIPd
+    Export: 
+        Name: Proxy-Egress-IP-4
+
+  SecurityGroupProxy:
+    Description: Proxy security group 
+    Value: SecurityGroup_Proxy
+    Export: 
+        Name: Proxy-SecurityGroup
+
+  LinuxProxySettings:
+    Description: Linux proxy settings. Copy and paste to your shell to set the proxy
+    Value: !Sub "export http_proxy=http://${LoadBalancer.DNSName}:${ProxyPort} && export https_proxy=$http_proxy"
+    Export: 
+      Name: LinuxProxySettings
+
+
+
+
+
