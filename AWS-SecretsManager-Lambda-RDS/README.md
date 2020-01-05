@@ -8,12 +8,12 @@ This repo shows you how you can store database credentials in AWS Secrets Manage
 
       Use the cloudformation template here in the repo and deploy using cli,
 
-        ```bash
-        aws cloudformation deploy \
-            --template-file ./templates/SecretsManager_LambdaRDS_CFN_template.yml \
-            --stack-name "MiztiikAutomationStack" \
-            --capabilities CAPABILITY_IAM
-        ```
+    ```bash
+    aws cloudformation deploy \
+        --template-file ./templates/SecretsManager_LambdaRDS_CFN_template.yml \
+        --stack-name "MiztiikAutomationStack" \
+        --capabilities CAPABILITY_IAM
+    ```
 
 1. ## Testing the solution
 
