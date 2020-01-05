@@ -4,6 +4,13 @@ Limiting outbound traffic to trusted domains (called `whitelisting`) prevent ins
 
 ![AWS Security](images/domain-whitelisting.png)
 
+1. ## Prerequisites
+
+    This demo, instructions, scripts and cloudformation template is designed to be run in `us-east-1`. With few modifications you can try it out in other regions as well(_Not covered here_).
+
+    - AWS CLI pre-configured - [Get help here](https://youtu.be/TPyyfmQte0U)
+
+
 1. ## Deployment
 
       Use the cloudformation template here in the repo and deploy using cli,
