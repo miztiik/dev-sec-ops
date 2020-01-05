@@ -1,9 +1,7 @@
-from aws_cdk import (
-    aws_cloudformation as cfn,
-    aws_lambda as lambda_,
-    aws_iam as iam,
-    core
-)
+from aws_cdk import aws_cloudformation as cfn
+from aws_cdk import aws_iam as iam
+from aws_cdk import aws_lambda as lambda_
+from aws_cdk import core
 
 
 class random_string_generator(core.Construct):
