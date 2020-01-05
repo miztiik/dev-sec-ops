@@ -17,7 +17,7 @@ Limiting outbound traffic to trusted domains (called `whitelisting`) prevent ins
 
     ```bash
     aws cloudformation deploy \
-        --template-file ./templates/outbound-proxy.yaml \
+        --template-file ./templates/content-filtering-with-proxy.yaml \
         --stack-name "MiztiikAutomationProxyStack" \
         --capabilities CAPABILITY_IAM
     ```
