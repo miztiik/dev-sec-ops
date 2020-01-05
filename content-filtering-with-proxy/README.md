@@ -13,6 +13,9 @@ Limiting outbound traffic to trusted domains (called `whitelisting`) prevent ins
         --template-file ./templates/vpc_bastion_private_instance.json \
         --stack-name "MiztiikAutomationNetWorkStack" \
         --capabilities CAPABILITY_IAM
+    ```
+
+    ```bash
     aws cloudformation deploy \
         --template-file ./templates/outbound-proxy.yaml \
         --stack-name "MiztiikAutomationProxyStack" \
