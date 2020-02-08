@@ -19,7 +19,7 @@
 |2|6|Reactive Controls: Automatically Remediate Non Compliant Resources|[Automatically Enforce compliance to AMI ID by Tags for all EC2 Instances](https://github.com/miztiik/dev-sec-ops/blob/master/aws-config-auto-remediation/templates/APPROVED_AMIS_BY_TAG.template)|
 |2|7|Reactive Controls: Automatically Remediate Non Compliant Resources|[AWS Config: Tribal Knowledge - Common Rules & Best Practices](https://aws.amazon.com/blogs/mt/aws-config-best-practices/)|
 |2|8|Reactive Controls: Automatically Remediate Non Compliant Resources|[AWS Config: Introduction to Custom Rules](https://aws.amazon.com/blogs/mt/how-to-develop-custom-aws-config-rules-using-the-rule-development-kit/)|
-|2|9|Reactive Controls: Automatically Remediate Non Compliant Resources|[Monitor & Flag Unused IAM Roles using Config Custom Rules](https://github.com/miztiik/security-automation-remediate-weak-s3-policy)|
+|2|9|Reactive Controls: Automatically Remediate Non Compliant Resources|[Monitor & Flag Unused IAM Roles using Config Custom Rules](https://github.com/miztiik/serverless-monitor-for-unused-iam-roles)|
 |2|10|Reactive Controls: Automatically Remediate Non Compliant Resources|[Monitor & Flag Users With Excessive Privileges](https://github.com/miztiik/security-automation-monitor-users-with-excessive-privileges)|
 |3|1|Proactive Security Controls|[Automatically Remediate AWS Cloutrail Disabling: Monitor, Alert, ReEnable](https://github.com/miztiik/dev-sec-ops/tree/master/automate-cloudtrail-monitoring-alerting-enabling)|
 |3|2|Proactive Security Controls|[Monitor & Automatically Revoke Unintended IAM Access](https://github.com/miztiik/dev-sec-ops/tree/master/remove-unused-security-groups)|
