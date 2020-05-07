@@ -1,6 +1,8 @@
-# 👮AWS Security: Use Secrets Manager to store Database credentials
+# 👮 AWS Security: Use Secrets Manager to store Database credentials
 
-This repo shows you how you can store database credentials in AWS Secrets Manager and avoid hardcoding them in applications. We will simulate a application request to DB using Lambda & API GW.
+This repo shows you how you can store database credentials in AWS Secrets Manager and avoid hard coding them in applications. We will simulate a application request to DB using Lambda & API GW.
+
+Follow this article in **[Udemy][101]**
 
 ![SecretsManager](https://github.com/aws-samples/automating-governance-sample/blob/master/AWS-SecretsManager-Lambda-RDS-blog/secretsmanager_blog.png?raw=true)
 
@@ -39,16 +41,41 @@ This repo shows you how you can store database credentials in AWS Secrets Manage
 
     This is not an exhaustive list, please carry out other necessary steps as maybe applicable to your needs.
 
-## Buy me a coffee
+## 📌 Who is using this
 
-Buy me a coffee ☕ through [Paypal](https://paypal.me/valaxy), _or_ You can reach out to get more details through [here](https://youtube.com/c/valaxytechnologies/about).
+This Udemy [course][101] uses this repository extensively to teach advanced AWS Cloud Security to new developers, Solution Architects & Ops Engineers in AWS.
 
-### References
+### 💡 Help/Suggestions or 🐛 Bugs
 
-1. [AWS Secrets Manager](https://aws.amazon.com/secrets-manager/)
+Thank you for your interest in contributing to our project. Whether it's a bug report, new feature, correction, or additional documentation or solutions, we greatly value feedback and contributions from our community. [Start here][200]
 
-1. [Rotating Your AWS Secrets Manager Secrets](https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotating-secrets.html)
+### 👋 Buy me a coffee
 
-### Metadata
+Buy me a [coffee ☕][900].
+
+### 📚 References
+
+1. [AWS Secrets Manager][1]
+1. [Rotating Your AWS Secrets Manager Secrets][2]
+
+### 🏷️ Metadata
 
 **Level**: 200
+
+[1]: https://aws.amazon.com/secrets-manager/
+
+[2]: https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotating-secrets.html
+
+[100]: https://www.udemy.com/course/aws-cloud-security/?referralCode=B7F1B6C78B45ADAF77A9
+
+[101]: https://www.udemy.com/course/aws-cloud-security-proactive-way/?referralCode=71DC542AD4481309A441
+
+[102]: https://www.udemy.com/course/aws-cloud-development-kit-from-beginner-to-professional/?referralCode=E15D7FB64E417C547579
+
+[103]: https://www.udemy.com/course/aws-cloudformation-basics?referralCode=93AD3B1530BC871093D6
+
+[200]: https://github.com/miztiik/security-automation-remediate-unintended-iam-access/issues
+
+[899]: https://www.udemy.com/user/n-kumar/
+
+[900]: https://ko-fi.com/miztiik

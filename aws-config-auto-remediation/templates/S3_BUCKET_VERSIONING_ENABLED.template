@@ -181,5 +181,15 @@
         }
       ]
     }
+  },
+  "Outputs": {
+    "LearnCDK": {
+      "Description": "Stop Writing Cloudformation.Infrastructure Is Code:Learn CDK",
+      "Value": "https://www.udemy.com/course/aws-cloud-development-kit-from-beginner-to-professional/?referralCode=E15D7FB64E417C547579"
+    },
+    "LearnAdvancedAWSSecurity": {
+      "Description": "AWS Advanced Security: SecOps Automation for the cloud",
+      "Value": "https://www.udemy.com/course/aws-cloud-security-proactive-way/?referralCode=71DC542AD4481309A441"
+    }
   }
 }

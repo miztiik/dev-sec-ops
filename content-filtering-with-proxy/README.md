@@ -1,6 +1,8 @@
-# 👮AWS Security: Content Filtering & Domain Whitelisting with Squid proxy
+# 👮 AWS Security: Content Filtering & Domain Whitelisting with Squid proxy
 
 Limiting outbound traffic to trusted domains (called `whitelisting`) prevent instances from downloading malware, communicating with bot networks.  You will learn how to limit outbound web connections from your VPC to the internet, using a web proxy with custom domain whitelists or DNS content filtering services.
+
+Follow this article in **[Udemy][101]**
 
 ![AWS Security](images/domain-whitelisting.png)
 
@@ -9,7 +11,6 @@ Limiting outbound traffic to trusted domains (called `whitelisting`) prevent ins
     This demo, instructions, scripts and cloudformation template is designed to be run in `us-east-1`. With few modifications you can try it out in other regions as well(_Not covered here_).
 
     - AWS CLI pre-configured - [Get help here](https://youtu.be/TPyyfmQte0U)
-
 
 1. ## Deployment
 
@@ -37,8 +38,7 @@ Limiting outbound traffic to trusted domains (called `whitelisting`) prevent ins
     1. `curl` any website - It should fail
     1. Set the proxy url from cloudformation outputs in `MiztiikAutomationProxyStack`
     1. `curl` for `whitelisted` domains
-    1. `curl` for _non-whitelisted_ domains: This should throw `Access Denied.` error 
-
+    1. `curl` for _non-whitelisted_ domains: This should throw `Access Denied.` error
 
 1. ## CleanUp
 
@@ -56,16 +56,41 @@ Limiting outbound traffic to trusted domains (called `whitelisting`) prevent ins
 
     This is not an exhaustive list, please carry out other necessary steps as maybe applicable to your needs.
 
-## Buy me a coffee
+## 📌 Who is using this
 
-Buy me a coffee ☕ through [Paypal](https://paypal.me/valaxy), _or_ You can reach out to get more details through [here](https://youtube.com/c/valaxytechnologies/about).
+This Udemy [course][101] uses this repository extensively to teach advanced AWS Cloud Security to new developers, Solution Architects & Ops Engineers in AWS.
 
-### References
+### 💡 Help/Suggestions or 🐛 Bugs
 
-1. [VPC Egress Control](https://aws.amazon.com/answers/networking/controlling-vpc-egress-traffic/)
+Thank you for your interest in contributing to our project. Whether it's a bug report, new feature, correction, or additional documentation or solutions, we greatly value feedback and contributions from our community. [Start here][200]
 
-1. [Squid](http://www.squid-cache.org/)
+### 👋 Buy me a coffee
 
-### Metadata
+Buy me a [coffee ☕][900].
+
+### 📚 References
+
+1. [VPC Egress Control][1]
+1. [Squid][2]
+
+### 🏷️ Metadata
 
 **Level**: 200
+
+[1]: https://aws.amazon.com/answers/networking/controlling-vpc-egress-traffic/
+
+[2]: http://www.squid-cache.org/
+
+[100]: https://www.udemy.com/course/aws-cloud-security/?referralCode=B7F1B6C78B45ADAF77A9
+
+[101]: https://www.udemy.com/course/aws-cloud-security-proactive-way/?referralCode=71DC542AD4481309A441
+
+[102]: https://www.udemy.com/course/aws-cloud-development-kit-from-beginner-to-professional/?referralCode=E15D7FB64E417C547579
+
+[103]: https://www.udemy.com/course/aws-cloudformation-basics?referralCode=93AD3B1530BC871093D6
+
+[200]: https://github.com/miztiik/security-automation-remediate-unintended-iam-access/issues
+
+[899]: https://www.udemy.com/user/n-kumar/
+
+[900]: https://ko-fi.com/miztiik
