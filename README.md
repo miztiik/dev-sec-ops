@@ -1,6 +1,10 @@
-# AWS Security Automation: Begineer to Professional
+# AWS Security Automation: Beginner to Professional Level
 
-This repository holds some of the resources to complete the [Udemy course][1]. All pull requests, suggestions and comments are welcome.
+As AWS cloud adoption is increasing, we have witnessed an expanded attack surface that cybercriminals can more easily exploit. Sensitive customer and corporate data has sprawled across multiple cloud environments, while deficiencies in security are increasing risks.
+
+This [Udemy course][1] helps you identify these risks and automate your response to the security incidents. This repository holds some of the resources to complete the [Udemy course][1].
+
+All pull requests, suggestions and comments are welcome.
 
 ## 👋 Buy me a coffee
 
