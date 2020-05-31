@@ -89,7 +89,7 @@ Buy me a [coffee ☕][900].
 
 [103]: https://www.udemy.com/course/aws-cloudformation-basics?referralCode=93AD3B1530BC871093D6
 
-[200]: https://github.com/miztiik/security-automation-remediate-unintended-iam-access/issues
+[200]: https://github.com/miztiik/dev-sec-ops/issues
 
 [899]: https://www.udemy.com/user/n-kumar/
 
